@@ -1,0 +1,5 @@
+/var
+/dist
+/bin/*
+!/bin/workflow
+/coverage.out

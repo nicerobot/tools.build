@@ -1,0 +1,10 @@
+# gomatic hadolint policy.
+#
+# OS-package version pinning (DL3008 for apt, DL3018 for apk) is deliberately not
+# enforced: distro package repos are rolling and exact pins rot fast, so we pin
+# the BASE image instead and let security patches flow in on rebuild. Everything
+# else stays on; the gate fails on any finding at warning level or above.
+ignored:
+  - DL3008
+  - DL3018
+failure-threshold: warning

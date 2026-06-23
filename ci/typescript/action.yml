@@ -1,0 +1,5 @@
+name: "typescript gate"
+description: "Biome lint + format-check gate for JavaScript/TypeScript."
+runs:
+  using: "docker"
+  image: "Dockerfile"

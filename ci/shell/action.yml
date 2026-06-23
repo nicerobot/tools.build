@@ -1,0 +1,5 @@
+name: "shell gate"
+description: "shellcheck + shfmt (2-space) gate for shell scripts."
+runs:
+  using: "docker"
+  image: "Dockerfile"

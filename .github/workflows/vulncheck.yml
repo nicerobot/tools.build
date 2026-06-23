@@ -1,0 +1,54 @@
+# tools.build — scheduled CVE scan (spec R14) of the bundled Go toolchain. The
+# toolchain version floats, but only a scheduled run actually re-scans, so a
+# dependency CVE published with no code change is still caught here. Scans every
+# tool in go-tooling's `tool` stanza (derived via `go list tool`).
+# Hardened per R15: concurrency-cancel, timeout, repo-guarded schedule.
+name: vulncheck
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '**/go.mod'
+      - '**/go.sum'
+      - '.github/workflows/vulncheck.yml'
+
+concurrency:
+  group: vulncheck-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  vulncheck:
+    name: govulncheck
+    # Forks do not run the schedule.
+    if: github.event_name != 'schedule' || github.repository == 'nicerobot/tools.build'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          check-latest: true
+      - name: govulncheck (toolchain CVE scan)
+        # go-tooling is a tools-only module: its go.mod `tool` stanza is the single
+        # source of the toolchain. govulncheck cannot module-scan a package-less
+        # module, so scan the tool packages themselves — deriving the list straight
+        # from the stanza (`go list tool`) so it can never drift. Package-level scan
+        # (not symbol) is robust across the large tool graphs and conservative
+        # (flags any imported vulnerable package).
+        run: |
+          tools="$(go -C go-tooling list tool)"
+          if [ -z "$tools" ]; then
+            echo "no tools in the go-tooling stanza — nothing to scan, skipping"
+            exit 0
+          fi
+          echo "$tools" | xargs go -C go-tooling tool govulncheck -scan=package

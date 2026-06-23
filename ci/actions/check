@@ -1,0 +1,13 @@
+#!/bin/sh
+# actions — lint GitHub Actions workflows with actionlint (which auto-discovers
+# .github/workflows). POSIX sh so the alpine base needs no extra packages and no
+# root. Skips cleanly when a repo has no workflows.
+set -eu
+
+if [ ! -d .github/workflows ]; then
+  echo 'no .github/workflows — skipping'
+  exit 0
+fi
+
+echo '== actionlint =='
+actionlint -color

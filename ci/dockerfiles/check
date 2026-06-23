@@ -1,0 +1,14 @@
+#!/bin/sh
+# dockerfiles — hadolint over every Dockerfile (*.dockerfile and Dockerfile),
+# using the baked gomatic policy. POSIX sh so the alpine base needs no extra
+# packages and no root. Skips cleanly when a repo has none.
+set -eu
+
+if ! find . \( -name '*.dockerfile' -o -name 'Dockerfile' \) -not -path '*/vendor/*' | grep -q .; then
+  echo 'no Dockerfiles — skipping'
+  exit 0
+fi
+
+echo '== hadolint =='
+find . \( -name '*.dockerfile' -o -name 'Dockerfile' \) -not -path '*/vendor/*' -print0 |
+  xargs -0 hadolint --config /etc/hadolint.yaml
