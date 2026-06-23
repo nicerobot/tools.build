@@ -64,7 +64,7 @@ GOTESTSUM     := $(GO) tool gotestsum
 GOVULNCHECK   := $(GO) tool govulncheck
 GORELEASER    := $(GO) tool goreleaser
 
-# The CANONICAL tool set — identical in every gomatic repo, no exceptions. This
+# The CANONICAL tool set — identical in every repo, no exceptions. This
 # is the single source of truth for which tools a repo installs; `make tools`
 # brings any repo's go.mod `tool (...)` stanza into compliance with it. Each
 # tool is named twice: TOOL_PKGS (the `go get -tool` import path) and TOOL_NAMES
@@ -271,7 +271,7 @@ coverage: $(COVERAGE_FOLDER) ## Run tests with coverage
 	$(GOTESTSUM) --format $(GO_TEST_FORMAT) -- -coverprofile=$(COVERAGE_FOLDER)/coverage.out ./...
 
 # The coverage GATE: run COVER_PKGS and fail unless aggregate statement coverage
-# is exactly COVER_THRESHOLD. This is the 100%-coverage enforcement every gomatic
+# is exactly COVER_THRESHOLD. This is the 100%-coverage enforcement every
 # consumer shares (folded into `check`); a consumer scopes COVER_PKGS to its own
 # tested set. Lists the sub-100% functions on failure so the miss is actionable.
 .PHONY: cover
@@ -283,8 +283,8 @@ cover: $(COVERAGE_FOLDER) ## Run tests and assert COVER_THRESHOLD coverage of CO
 
 # Build-tag-gated tests (integration, e2e, ...). The shared `test`/`test-all`
 # targets run only UNTAGGED unit tests; anything behind a `//go:build <tag>`
-# constraint is invisible to them and runs here instead. gomatic/build owns the
-# invocation (gotestsum + the pinned toolchain); the CONSUMER owns whatever
+# constraint is invisible to them and runs here instead. this shared Makefile owns
+# the invocation (gotestsum + the pinned toolchain); the CONSUMER owns whatever
 # environment those tests need — a live Postgres, env vars, fixtures — by
 # exporting it before calling this (or wrapping it in a consumer target).
 #
@@ -314,8 +314,8 @@ test-tag-%:
 # `integration` is the near-universal tag, so it gets a named, help-listed
 # shortcut rather than every consumer wrapping `test-tag TAG=integration`. The
 # consumer still owns the ENVIRONMENT these tests need (live Postgres, env
-# vars) — export it before invoking, e.g. PGHOST/PGPORT/... — gomatic/build owns
-# only the run.
+# vars) — export it before invoking, e.g. PGHOST/PGPORT/... — this shared
+# Makefile owns only the run.
 #
 # Scope: run from ./integration/... when that folder exists (the common layout —
 # tagged tests collected in their own dir), else the whole module (./...) for
@@ -360,14 +360,16 @@ release-snapshot: pre-build ## Create a snapshot release (no git tag required)
 
 ##@ Docker
 
-# Centralized image build. Everything is derived from sources gomatic/build already
-# knows, so a consumer sets nothing in the common case:
-#   DOCKER_IMAGE      <- ghcr.io/gomatic/<repo-dir-name>
+# Centralized image build. Everything is derived from the consumer repo itself,
+# so it sets nothing in the common case:
+#   DOCKER_IMAGE      <- ghcr.io/<owner>/<repo-dir-name>  (owner from origin remote)
 #   DOCKER_ENTRYPOINT <- the first id under builds: in .goreleaser.yml
-# The consumer's Dockerfile is expected to `FROM gomatic/runtime` (built from this
-# repo's runtime.dockerfile), which bakes the unprivileged user, certs and the
-# distroless base — so the consumer Dockerfile is just COPY + ENTRYPOINT.
-DOCKER_REGISTRY   ?= ghcr.io/gomatic
+# The consumer's Dockerfile is expected to `FROM` the shared distroless runtime
+# base (nicerobot/build-tools/runtime), which bakes the unprivileged user, certs
+# and the distroless base — so the consumer Dockerfile is just COPY + ENTRYPOINT.
+# DOCKER_REGISTRY derives its owner from the repo's own origin remote, so this
+# distributed Makefile is correct in whatever org/repo it lands in.
+DOCKER_REGISTRY   ?= ghcr.io/$(shell git config --get remote.origin.url 2>/dev/null | sed -E 's#\.git$$##;s#.*[:/]([^/]+)/[^/]+$$#\1#')
 DOCKER_IMAGE      ?= $(DOCKER_REGISTRY)/$(notdir $(CURDIR))
 DOCKER_IMAGE_TAG  ?= latest
 DOCKER_ENTRYPOINT ?= $(firstword $(BINARIES))
