@@ -1,0 +1,43 @@
+#!/bin/bash
+# docs — Markdown lint + Mermaid render gate. Lints every tracked .md with the
+# gomatic ruleset, then extracts each ```mermaid block and renders it so a
+# diagram that no longer parses fails the build. Skips cleanly when a repo has
+# no markdown.
+set -o errexit
+set -o nounset
+set -o pipefail
+
+readonly md_config=/etc/gomatic.markdownlint-cli2.jsonc
+readonly puppeteer_config=/etc/puppeteer.json
+
+mapfile -t md_files < <(find . -name '*.md' \
+  -not -path '*/vendor/*' -not -path '*/node_modules/*' | sort)
+
+if [[ ${#md_files[@]} -eq 0 ]]; then
+  echo 'no markdown files — skipping'
+  exit 0
+fi
+
+echo '== markdownlint =='
+markdownlint-cli2 --config "${md_config}" "${md_files[@]}"
+
+echo '== mermaid render =='
+status=0
+for md in "${md_files[@]}"; do
+  rm -f /tmp/mmd-*.mmd
+  # Split each fenced ```mermaid block into its own file so multiple diagrams in
+  # one document are each validated independently.
+  awk '
+    /^```mermaid[[:space:]]*$/ { n++; fn = sprintf("/tmp/mmd-%03d.mmd", n); inblk = 1; next }
+    /^```/ && inblk         { inblk = 0; next }
+    inblk                   { print > fn }
+  ' "${md}"
+  for diagram in /tmp/mmd-*.mmd; do
+    [[ -e "${diagram}" ]] || continue
+    echo "rendering ${md} (${diagram##*/})"
+    mmdc --puppeteerConfigFile "${puppeteer_config}" \
+      --input "${diagram}" --output /tmp/diagram.svg || status=1
+  done
+done
+
+exit "${status}"

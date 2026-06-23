@@ -1,0 +1,5 @@
+name: "actions gate"
+description: "actionlint gate for GitHub Actions workflows."
+runs:
+  using: "docker"
+  image: "Dockerfile"

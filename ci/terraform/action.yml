@@ -1,0 +1,5 @@
+name: "terraform gate"
+description: "terraform fmt -check + tflint gate."
+runs:
+  using: "docker"
+  image: "Dockerfile"

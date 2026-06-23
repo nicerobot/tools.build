@@ -1,0 +1,20 @@
+#!/bin/bash
+# ci — Go quality gate. Runs the shared Makefile `ci` target when the repo has
+# first-party packages; otherwise proves the pinned toolchain builds from vendor
+# (the gomatic/build case — it ships no packages of its own). Vendored, so the
+# whole gate runs offline.
+set -o errexit
+set -o nounset
+set -o pipefail
+
+pkgs="$(go list ./... 2>/dev/null | grep -v /vendor/ || true)"
+if [[ -n "${pkgs}" ]]; then
+  exec make ci
+fi
+
+# No packages (the gomatic/build case): `tools-version` compiles every pinned
+# tool from vendor and prints its version — proving the toolchain still builds —
+# WITHOUT the network access or go.mod/vendor mutation that `make tools` does
+# (which must never touch a mounted working tree).
+echo "no first-party packages — verifying the pinned toolchain builds from vendor"
+exec make tools-version

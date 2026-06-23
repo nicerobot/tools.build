@@ -1,0 +1,5 @@
+name: "docs gate"
+description: "Markdown lint (markdownlint) + Mermaid render gate."
+runs:
+  using: "docker"
+  image: "Dockerfile"

@@ -1,0 +1,32 @@
+#!/bin/bash
+# shell — shellcheck + shfmt (2-space, per .editorconfig) over every shell
+# script: all *.sh files plus any extensionless file carrying a shell shebang
+# (e.g. bin/workflow, ci/<type>/check). Skips cleanly when a repo has no shell.
+set -o errexit
+set -o nounset
+set -o pipefail
+
+mapfile -t sh_files < <(find . \
+  \( -path './.git/*' -o -path '*/vendor/*' -o -path '*/node_modules/*' \) -prune -o \
+  -type f -name '*.sh' -print | sort)
+
+# Extensionless tools are shell too — include any file with no dot in its name
+# whose first line is a bash/sh shebang, anywhere in the tree.
+while IFS= read -r candidate; do
+  if head -n1 "${candidate}" | grep -Eq '^#!.*\b(ba)?sh\b'; then
+    sh_files+=("${candidate}")
+  fi
+done < <(find . \
+  \( -path './.git/*' -o -path '*/vendor/*' -o -path '*/node_modules/*' \) -prune -o \
+  -type f ! -name '*.*' -print | sort)
+
+if [[ ${#sh_files[@]} -eq 0 ]]; then
+  echo 'no shell scripts — skipping'
+  exit 0
+fi
+
+echo '== shellcheck =='
+shellcheck "${sh_files[@]}"
+
+echo '== shfmt (diff, 2-space) =='
+shfmt --diff --indent 2 --case-indent "${sh_files[@]}"

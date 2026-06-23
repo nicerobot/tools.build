@@ -1,0 +1,19 @@
+#!/bin/bash
+# terraform — fmt check + tflint. Skips cleanly when a repo has no Terraform.
+set -o errexit
+set -o nounset
+set -o pipefail
+
+mapfile -t files < <(find . -name '*.tf' \
+  -not -path '*/.terraform/*' -not -path '*/vendor/*' | sort)
+
+if [[ ${#files[@]} -eq 0 ]]; then
+  echo 'no terraform files — skipping'
+  exit 0
+fi
+
+echo '== terraform fmt -check =='
+terraform fmt -check -recursive
+
+echo '== tflint =='
+tflint --recursive

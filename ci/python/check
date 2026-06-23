@@ -1,0 +1,19 @@
+#!/bin/bash
+# python — ruff lint + format check. Skips cleanly when a repo has no Python.
+set -o errexit
+set -o nounset
+set -o pipefail
+
+mapfile -t files < <(find . -name '*.py' \
+  -not -path '*/vendor/*' -not -path '*/.venv/*' -not -path '*/node_modules/*' | sort)
+
+if [[ ${#files[@]} -eq 0 ]]; then
+  echo 'no python files — skipping'
+  exit 0
+fi
+
+echo '== ruff check =='
+ruff check .
+
+echo '== ruff format --check =='
+ruff format --check .
