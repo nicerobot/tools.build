@@ -10,7 +10,7 @@ of it.** No `tool` directives, no `go install`, no pinned tool versions in your
 its `make` targets.
 
 ```
-ghcr.io/nicerobot/build-tools/go-tooling:v2
+ghcr.io/nicerobot/build-tools/go-tooling:v1
 ```
 
 ## What's inside
@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: nicerobot/build-tools/go-tooling@v2
+      - uses: nicerobot/build-tools/go-tooling@v1
         with:
           target: check        # default
 ```
@@ -78,7 +78,7 @@ jobs:
 jobs:
   go-quality:
     runs-on: ubuntu-latest
-    container: ghcr.io/nicerobot/build-tools/go-tooling:v2
+    container: ghcr.io/nicerobot/build-tools/go-tooling:v1
     steps:
       - uses: actions/checkout@v4
       - run: make -f /opt/go-tooling/tools.mk check
@@ -101,7 +101,7 @@ build: lint test
 
 ```sh
 docker run --rm -v "$PWD:/src" -w /src \
-  ghcr.io/nicerobot/build-tools/go-tooling:v2 \
+  ghcr.io/nicerobot/build-tools/go-tooling:v1 \
   make -f /opt/go-tooling/tools.mk check
 ```
 
@@ -124,7 +124,7 @@ CI uses simply by running the same image — nothing is installed on the host.
   image against `ci.mk`:
 
   ```makefile
-  GO_TOOLING_IMAGE ?= ghcr.io/nicerobot/build-tools/go-tooling:v2
+  GO_TOOLING_IMAGE ?= ghcr.io/nicerobot/build-tools/go-tooling:v1
   %:
   	docker run --rm -v "$(CURDIR):/src" -w /src $(GO_TOOLING_IMAGE) make -f ci.mk $@
   ```
