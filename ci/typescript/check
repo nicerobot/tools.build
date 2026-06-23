@@ -1,0 +1,19 @@
+#!/bin/bash
+# typescript — Biome lint + format check for JS/TS. Skips cleanly when a repo has
+# no JavaScript/TypeScript.
+set -o errexit
+set -o nounset
+set -o pipefail
+
+mapfile -t files < <(find . -type f \
+  \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' \
+  -o -name '*.mjs' -o -name '*.cjs' \) \
+  -not -path '*/vendor/*' -not -path '*/node_modules/*' -not -path '*/dist/*' | sort)
+
+if [[ ${#files[@]} -eq 0 ]]; then
+  echo 'no javascript/typescript files — skipping'
+  exit 0
+fi
+
+echo '== biome ci =='
+biome ci .

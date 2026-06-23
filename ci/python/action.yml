@@ -1,0 +1,5 @@
+name: "python gate"
+description: "ruff lint + format-check gate."
+runs:
+  using: "docker"
+  image: "Dockerfile"

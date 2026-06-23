@@ -1,0 +1,14 @@
+#!/bin/sh
+# python — uv-based quality gate. Runs the shared Makefile `ci` target (ruff
+# format + lint, ty type-check, pytest) from the distributed build/python
+# Makefile, so the gate and a local `make ci` are identical. Skips cleanly when a
+# repo has no Python.
+set -eu
+
+if [ -z "$(find . -name '*.py' -not -path '*/.venv/*' -not -path '*/vendor/*' -not -path '*/node_modules/*' -print -quit)" ]; then
+  echo 'no python files — skipping'
+  exit 0
+fi
+
+echo '== make ci (uv) =='
+exec make ci

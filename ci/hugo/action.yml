@@ -1,0 +1,5 @@
+name: "hugo gate"
+description: "Hugo build gate for GitHub Pages sites."
+runs:
+  using: "docker"
+  image: "Dockerfile"
