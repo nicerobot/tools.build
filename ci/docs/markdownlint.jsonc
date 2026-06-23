@@ -1,0 +1,22 @@
+{
+  // gomatic Markdown ruleset (markdownlint-cli2 config object).
+  //
+  // MD013 (line-length) is OFF on purpose: prose is one physical line per
+  // paragraph — hard-wrapping at a column is forbidden, so long lines are
+  // correct, not a violation. MD033 (inline HTML) and MD041 (first line must be
+  // a top-level heading) are relaxed because docs embed admonitions and lead
+  // with badges/frontmatter. MD024 allows same-named headings under different
+  // parents (e.g. repeated "Examples"). MD010 (no-hard-tabs) skips code blocks
+  // because Make recipes require a literal tab and gofmt indents Go with tabs —
+  // a tab inside a fenced block is correct, not a violation; prose tabs still
+  // fail.
+  "config": {
+    "default": true,
+    "MD013": false,
+    "MD033": false,
+    "MD041": false,
+    "MD024": { "siblings_only": true },
+    "MD010": { "code_blocks": false }
+  },
+  "ignores": ["**/vendor/**", "**/node_modules/**"]
+}

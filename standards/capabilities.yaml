@@ -1,0 +1,109 @@
+# capabilities.yaml — the canonical registry of every standard a repo can be
+# measured against. Single source of truth, consumed by:
+#   - the shared gate (build/go/Makefile): validates .standards.yaml exempt keys
+#     against this registry and runs each gate capability's `raw` target.
+#   - distribute / verify (tools.repository): maps managed artifacts to
+#     artifact:* capabilities and probes gate:/convention: staleness.
+#
+# A repo's .standards.yaml may list any of these under `exempt:` (with a reason)
+# to declare it does NOT yet satisfy that capability. The anti-rot ratchet then
+# fails the moment an exempted capability actually passes — exemptions only shrink.
+#
+# Kinds:
+#   artifact    — a managed file distribute injects; exempting it skips injection.
+#   gate        — a mechanical check the shared gate runs; `raw` is the make target
+#                 that runs JUST that check (the staleness probe).
+#   convention  — a higher-level convention verified by a gomatic/analyzers/<name>/v1
+#                 analyzer. RESERVED: inert until its analyzer ships (analyzer: false),
+#                 at which point the ratchet begins applying to it.
+
+capabilities:
+  # ---- artifacts (distribute-injected managed files) --------------------------
+  artifact:makefile:
+    kind: artifact
+    description: shared Go toolchain Makefile
+  artifact:golangci:
+    kind: artifact
+    description: shared golangci-lint configuration
+  artifact:workflow:go:
+    kind: artifact
+    description: Go CI workflow (.github/workflows/go.yml)
+  artifact:workflow:actions:
+    kind: artifact
+    description: actions-lint workflow
+  artifact:workflow:docs:
+    kind: artifact
+    description: docs/markdown workflow
+  artifact:workflow:dockerfiles:
+    kind: artifact
+    description: Dockerfile-lint workflow
+  artifact:workflow:shell:
+    kind: artifact
+    description: shell-lint workflow
+  artifact:workflow:release:
+    kind: artifact
+    description: goreleaser release workflow
+
+  # ---- gates (mechanical checks the shared gate runs) -------------------------
+  gate:lint:
+    kind: gate
+    description: golangci-lint clean (incl. gocognit <=7, gosec, formatting)
+    raw: lint-raw
+  gate:staticcheck:
+    kind: gate
+    description: staticcheck clean
+    raw: staticcheck-raw
+  gate:vulncheck:
+    kind: gate
+    description: govulncheck clean
+    raw: vulncheck-raw
+  gate:coverage:
+    kind: gate
+    description: 100% aggregate statement coverage
+    raw: cover
+
+  # ---- conventions (RESERVED — analyzers deferred to gomatic/analyzers/*/v1) ---
+  convention:sentinel-errors:
+    kind: convention
+    description: errors are constant sentinels (type Error string); no errors.New / bare fmt.Errorf
+    analyzer: false
+  convention:error-wrap:
+    kind: convention
+    description: fmt.Errorf used only to %w-wrap a sentinel
+    analyzer: false
+  convention:named-params:
+    kind: convention
+    description: function/method params use named domain types, not bare primitives
+    analyzer: false
+  convention:value-receivers:
+    kind: convention
+    description: value receivers / immutable types unless a pointer is justified
+    analyzer: false
+  convention:private-by-default:
+    kind: convention
+    description: no exported symbol without an external consumer or interface need
+    analyzer: false
+  convention:cliv3:
+    kind: convention
+    description: CLIs use urfave/cli/v3 (not v1/v2)
+    analyzer: true
+  convention:cliversion:
+    kind: convention
+    description: a CLI's cmd/<app>/main.go declares `var version` and assigns it to the urfave Version field (--version; ldflags -X main.version target)
+    analyzer: true
+  convention:library-marker:
+    kind: convention
+    description: library repos carry the library.go build-tag marker
+    analyzer: false
+
+  # ---- classification (repo-class marker drift; verified live by the standards
+  #      engine in `git repo standards verify`, not the per-repo make gate) -------
+  # Keyed by the bare analyzer name (not dotted) because the standards engine's
+  # exemption filter uses the analyzer's own name as the .standards.yaml key. A
+  # root-go.mod module that is neither a CLI (cmd/<binary>/) nor a library
+  # (library.go) — e.g. an integration-test harness or other non-distributable
+  # module — exempts this to declare it is deliberately unclassified.
+  classification:
+    kind: convention
+    description: a root-go.mod module carries exactly one class marker (cmd/<binary>/ or library.go, or an owner-granted root main.go)
+    analyzer: true

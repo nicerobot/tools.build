@@ -1,0 +1,73 @@
+#!/bin/bash
+# bin/workflow — run a CI workflow's checks locally in the SAME image CI uses,
+# against this repo. The image is the single source of truth: GitHub Actions runs
+# `bin/workflow <type>` too (see .github/workflows/), so a local run and a CI run
+# are byte-identical — no "works on my machine" drift.
+#
+#   bin/workflow            # list available workflows
+#   bin/workflow go         # run the Go quality gate
+#   bin/workflow docs       # run the Markdown + Mermaid gate
+#   bin/workflow shell      # run the shellcheck + shfmt gate
+#
+# Each workflow <type> is defined by docker/<type>/{Dockerfile,check}. The repo
+# is mounted at /work; the image's baked check script runs there.
+#
+# By default the image is built locally on demand. Set WORKFLOW_IMAGE_PREFIX to a
+# published registry path (e.g. ghcr.io/nicerobot/tools.build/ci) to PULL a prebuilt
+# image instead — `${PREFIX}/<type>:${WORKFLOW_IMAGE_TAG:-latest}` — falling back
+# to a local build if the pull fails. That is how "don't build locally" is wired
+# once the images are published.
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# Unset CDPATH so `cd` never echoes the resolved directory (it does when CDPATH
+# is set in the environment), which would otherwise corrupt the captured path.
+unset CDPATH
+
+root="$(cd -- "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly root
+readonly ci_dir="${root}/ci"
+
+list_workflows() {
+  echo "available workflows:"
+  for dir in "${ci_dir}"/*/; do
+    [[ -f "${dir}Dockerfile" ]] && echo "  $(basename "${dir}")"
+  done
+}
+
+if [[ ${#} -lt 1 ]]; then
+  list_workflows
+  exit 0
+fi
+
+readonly name="${1}"
+shift
+readonly type_dir="${ci_dir}/${name}"
+
+if [[ ! -f "${type_dir}/Dockerfile" ]]; then
+  echo >&2 "ERROR: unknown workflow '${name}' (no ${type_dir}/Dockerfile)"
+  list_workflows
+  exit 2
+fi
+
+image="tools.build/ci-${name}:local"
+if [[ -n "${WORKFLOW_IMAGE_PREFIX:-}" ]]; then
+  readonly published="${WORKFLOW_IMAGE_PREFIX}/${name}:${WORKFLOW_IMAGE_TAG:-latest}"
+  if docker pull "${published}" >/dev/null 2>&1; then
+    image="${published}"
+  else
+    echo >&2 "note: could not pull ${published}; building locally"
+    docker build --file "${type_dir}/Dockerfile" --tag "${image}" "${type_dir}"
+  fi
+else
+  docker build --file "${type_dir}/Dockerfile" --tag "${image}" "${type_dir}"
+fi
+readonly image
+
+run_flags=(--rm --volume "${root}:/work" --workdir /work)
+if [[ -t 0 ]]; then
+  run_flags+=(--interactive --tty)
+fi
+
+docker run "${run_flags[@]}" "${image}" "$@"

@@ -1,0 +1,91 @@
+# tools.build — publish every image to GHCR on a v* tag, with SBOM + provenance
+# (build-push-action attestations) and a keyless cosign signature (spec R8/R17).
+# Hardened per R15: scoped permissions, repo guard, no persisted credentials.
+#
+# Callable two ways: directly on a `v*` tag push (manual `git tag && git push`),
+# or as a reusable workflow invoked by release-please.yml once it tags a release
+# itself — the default GITHUB_TOKEN release-please uses can't re-trigger this
+# workflow's own tag-push event, so release-please.yml calls it in-run instead
+# via `uses:` and passes the tag it just created through the `tag` input.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_call:
+    inputs:
+      tag:
+        description: 'Release tag (vX.Y.Z) to publish; defaults to the pushed tag ref'
+        required: false
+        type: string
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write       # keyless cosign + provenance
+  attestations: write
+
+jobs:
+  images:
+    name: publish ${{ matrix.image.name }}
+    if: github.repository == 'nicerobot/tools.build'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - { name: go-tooling, context: go-tooling }
+          - { name: runtime, context: runtime }
+          - { name: ci/go, context: ci/go }
+          - { name: ci/docs, context: ci/docs }
+          - { name: ci/shell, context: ci/shell }
+          - { name: ci/actions, context: ci/actions }
+          - { name: ci/dockerfiles, context: ci/dockerfiles }
+          - { name: ci/python, context: ci/python }
+          - { name: ci/typescript, context: ci/typescript }
+          - { name: ci/terraform, context: ci/terraform }
+          - { name: ci/hugo, context: ci/hugo }
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: sigstore/cosign-installer@v3
+      - id: meta
+        # Derive the major alias from the SemVer tag (v2.1.0 -> v2; a bare v2 maps
+        # to itself) so consumers pinning :vMAJOR always get the latest of that
+        # major — the uniform container-versioning scheme: :vX.Y.Z, :vX, :latest.
+        # TAG is the workflow_call input when release-please.yml invokes this
+        # workflow directly (its own tag push can't retrigger this workflow's
+        # `on: push: tags` event), else the pushed tag ref itself.
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "major=${TAG%%.*}" >> "$GITHUB_OUTPUT"
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.image.context }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ steps.meta.outputs.major }}
+            ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:latest
+          provenance: true
+          sbom: true
+      - name: cosign sign (keyless)
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}/${{ matrix.image.name }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: cosign sign --yes "${IMAGE}@${DIGEST}"

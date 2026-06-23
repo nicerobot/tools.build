@@ -1,0 +1,5 @@
+name: "dockerfiles gate"
+description: "hadolint gate for Dockerfiles."
+runs:
+  using: "docker"
+  image: "Dockerfile"
