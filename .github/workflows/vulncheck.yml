@@ -1,0 +1,41 @@
+# build-tools — scheduled CVE scan (spec R14). The Go toolchain version floats,
+# but only a scheduled run actually re-scans: a dependency CVE published with no
+# code change is caught here. Copy this into any Go repo as its periodic guard.
+# Hardened per R15: concurrency-cancel, timeout, repo-guarded schedule.
+name: vulncheck
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '**/go.mod'
+      - '**/go.sum'
+      - '.github/workflows/vulncheck.yml'
+
+concurrency:
+  group: vulncheck-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  vulncheck:
+    name: govulncheck
+    # Forks do not run the schedule.
+    if: github.event_name != 'schedule' || github.repository == 'nicerobot/build-tools'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          check-latest: true
+      - name: govulncheck (module-level CVE scan)
+        run: go -C go-tooling tool govulncheck -scan=module ./...

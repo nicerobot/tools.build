@@ -1,0 +1,57 @@
+# build-tools — self CI. Dogfoods its own gates, asserts the go-make <-> go-tooling
+# alignment, and scans for secrets. Hardened per spec R15 (concurrency-cancel,
+# timeouts, least privilege, no persisted checkout credentials).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  alignment:
+    name: tool-set + config alignment
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - run: scripts/check-alignment.sh
+
+  gates:
+    name: gate (${{ matrix.gate }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        gate: [shell, dockerfiles, actions, docs]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: run the gate exactly as locally
+        env:
+          GATE: ${{ matrix.gate }}
+        run: bin/workflow "$GATE"
+
+  secrets:
+    name: secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: gitleaks
+        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest detect --source=/repo --no-banner
