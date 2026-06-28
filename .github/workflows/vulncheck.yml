@@ -1,7 +1,7 @@
 # tools.build — scheduled CVE scan (spec R14) of the bundled Go toolchain. The
 # toolchain version floats, but only a scheduled run actually re-scans, so a
-# dependency CVE published with no code change is still caught here. Scans every
-# tool in go-tooling's `tool` stanza (derived via `go list tool`).
+# dependency CVE published with no code change is still caught here. Installs the
+# pinned tools (go-tooling/tools.txt) and govulncheck-scans each baked binary.
 # Hardened per R15: concurrency-cancel, timeout, repo-guarded schedule.
 name: vulncheck
 
@@ -12,8 +12,8 @@ on:
   push:
     branches: [main]
     paths:
-      - '**/go.mod'
-      - '**/go.sum'
+      - 'go-tooling/tools.txt'
+      - 'scripts/go-tools-vulncheck.sh'
       - '.github/workflows/vulncheck.yml'
 
 concurrency:
@@ -38,17 +38,12 @@ jobs:
         with:
           go-version: '1.26'
           check-latest: true
+      - name: install the pinned tool set
+        # Install exactly the manifest into $GOBIN — the same path local dev and
+        # the go-tooling image use — so this scan covers the binaries CI ships.
+        run: go-tooling/install-tools.sh
       - name: govulncheck (toolchain CVE scan)
-        # go-tooling is a tools-only module: its go.mod `tool` stanza is the single
-        # source of the toolchain. govulncheck cannot module-scan a package-less
-        # module, so scan the tool packages themselves — deriving the list straight
-        # from the stanza (`go list tool`) so it can never drift. Package-level scan
-        # (not symbol) is robust across the large tool graphs and conservative
-        # (flags any imported vulnerable package).
-        run: |
-          tools="$(go -C go-tooling list tool)"
-          if [ -z "$tools" ]; then
-            echo "no tools in the go-tooling stanza — nothing to scan, skipping"
-            exit 0
-          fi
-          echo "$tools" | xargs go -C go-tooling tool govulncheck -scan=package
+        # Reachability scan of each baked binary (`-mode=binary`): precise per-tool
+        # attribution, and it works now that tools install via `go install` with no
+        # shared module. Derives the binary list from tools.txt so it can't drift.
+        run: scripts/go-tools-vulncheck.sh

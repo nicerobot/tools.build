@@ -10,7 +10,7 @@ ghcr.io/nicerobot/tools.build/go-tooling:v2
 
 ## What's inside
 
-Every tool is declared in a single [`go.mod`](go.mod) `tool` block and compiled into the image with `go install tool` (Go 1.24+ tool dependencies). They live on `$PATH` (`/go/bin`).
+Every tool is pinned in a single manifest, [`tools.txt`](tools.txt) (one `importpath@version` per line), and compiled into the image with `go install path@version` — the same [`install-tools.sh`](install-tools.sh) a developer runs locally, so the image and `~/go/bin` hold byte-identical versions. They live on `$PATH` (`/go/bin`).
 
 | Category | Tools |
 | --- | --- |
@@ -21,7 +21,7 @@ Every tool is declared in a single [`go.mod`](go.mod) `tool` block and compiled 
 | Complexity | `gocyclo` (cyclomatic), `gocognit` (cognitive), `dupl` (duplication) |
 | Security | `gosec` |
 | Vulnerabilities | `govulncheck` |
-| Tests / coverage | `gotestsum`, `go-junit-report`, `gocov`, `gocov-xml` |
+| Tests / coverage | `gotestsum`, `go-junit-report` |
 
 `golangci-lint` additionally runs many of the above (and more) as integrated linters; the standalone binaries are there for targeted, scriptable use.
 

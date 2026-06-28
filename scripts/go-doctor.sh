@@ -1,39 +1,39 @@
 #!/bin/bash
-# go-doctor — warn when a Homebrew copy shadows a pinned $GOBIN tool.
+# go-doctor — verify $GOBIN tool versions match the manifest, and warn when a
+# Homebrew copy shadows one.
 #
-# The go gate path-pins every tool to $(go env GOBIN), so a brew copy never
-# affects it — but agents and humans that invoke a tool by BARE NAME pick whatever
-# is first on PATH. This reports any canonical tool (derived from go-tooling's
-# `tool (...)` stanza) whose bare-name resolution lands in the Homebrew prefix.
-# Warn-only; it never fails.
+# First it runs verify-tools.sh: the proof that ~/go/bin holds exactly the
+# versions in go-tooling/tools.txt (and therefore the same versions CI uses). Then
+# it warns about bare-name shadowing: the go gate path-pins every tool to
+# $(go env GOBIN), so a brew copy never affects it — but agents and humans that
+# invoke a tool by BARE NAME pick whatever is first on PATH. The shadow check is
+# warn-only; a version mismatch from verify is a hard failure.
 set -o errexit
 set -o nounset
 set -o pipefail
 
 unset CDPATH
 
-here="$(cd -- "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+here="$(cd -- "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
 readonly here
-readonly gomod="${here}/go-tooling/go.mod"
+# shellcheck source=../go-tooling/tools-lib.sh
+# shellcheck disable=SC1091 # sourced lib is its own shellcheck input
+source "${here}/go-tooling/tools-lib.sh"
+
+# Hard gate: installed binaries must match the pinned manifest.
+"${here}/go-tooling/verify-tools.sh"
 
 if ! command -v brew >/dev/null 2>&1; then
-  echo 'doctor: Homebrew not found — nothing to check.'
+  echo 'doctor: Homebrew not found — no shadow check needed.'
   exit 0
 fi
 
 prefix="$(brew --prefix 2>/dev/null || true)"
 readonly prefix
 
-# Binary names provided by the stanza: the last path segment, or the one before a
-# trailing major-version element (.../goreleaser/v2 -> goreleaser).
-tool_binaries() {
-  awk '/^tool \(/{f=1;next} /^\)/{f=0} f{gsub(/[ \t]/,"");print}' "${gomod}" |
-    awk -F/ '{ last=$NF; if (last ~ /^v[0-9]+$/) last=$(NF-1); print last }' |
-    sort -u
-}
-
 shadowed=0
-while IFS= read -r tool; do
+while IFS= read -r path; do
+  tool="$(tool_bin "${path}")"
   resolved="$(command -v "${tool}" 2>/dev/null || true)"
   case "${resolved}" in
     "${prefix}"/*)
@@ -41,7 +41,7 @@ while IFS= read -r tool; do
       shadowed=1
       ;;
   esac
-done < <(tool_binaries)
+done < <(manifest_paths)
 
 if [[ "${shadowed}" -eq 0 ]]; then
   echo 'doctor: no Homebrew-shadowed tools — bare-name runs resolve to the pinned GOBIN.'

@@ -1,0 +1,47 @@
+# tools.txt — the canonical pinned Go tool set.
+#
+# One `importpath@version` per line: the SINGLE source of every quality tool's
+# version. It is installed verbatim by install-tools.sh via `go install
+# path@version`, into $GOBIN locally and into the go-tooling image in CI — so a
+# developer's ~/go/bin and CI hold byte-identical tool versions, and every
+# library and service builds the same way in both places.
+#
+# `go install path@version` builds each tool in its OWN module context (pinned by
+# that tool's own go.sum + the Go checksum DB), so tools are dependency-isolated
+# from each other and from this repo — there is no shared go.mod/go.sum here.
+#
+# Bump every tool to its latest release with `make upgrade` (scripts/go-tooling-upgrade.sh);
+# verify installed binaries match this manifest with `make verify` (go-tooling/verify-tools.sh).
+# Blank lines and lines beginning with `#` are ignored.
+
+# Formatting & imports
+mvdan.cc/gofumpt@v0.10.0
+golang.org/x/tools/cmd/goimports@v0.47.0
+github.com/daixiang0/gci@v0.14.0
+github.com/segmentio/golines@v0.13.0
+
+# Linting & static analysis
+github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
+honnef.co/go/tools/cmd/staticcheck@v0.7.0
+github.com/kisielk/errcheck@v1.20.0
+github.com/gordonklaus/ineffassign@v0.2.0
+github.com/client9/misspell/cmd/misspell@v0.3.4
+golang.org/x/tools/cmd/deadcode@v0.47.0
+github.com/mgechev/revive@v1.15.0
+github.com/mibk/dupl@v1.1.0
+go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260625224722-136c083a9b77
+
+# Complexity
+github.com/fzipp/gocyclo/cmd/gocyclo@v0.6.0
+github.com/uudashr/gocognit/cmd/gocognit@v1.2.1
+
+# Security & vulnerabilities
+github.com/securego/gosec/v2/cmd/gosec@v2.27.1
+golang.org/x/vuln/cmd/govulncheck@v1.5.0
+
+# Tests & coverage
+gotest.tools/gotestsum@v1.13.0
+github.com/jstemmer/go-junit-report/v2@v2.1.0
+
+# Release
+github.com/goreleaser/goreleaser/v2@v2.16.0

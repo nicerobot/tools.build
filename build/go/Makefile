@@ -39,11 +39,12 @@
 #   SUBMODULES <- nested go.mod dirs (excluding vendor/testdata/fixtures)
 # Override either on the command line for the rare repo that needs to.
 #
-# The canonical tool set lives in ONE place — the `tool (...)` stanza of
-# nicerobot/tools.build/go-tooling/go.mod — and is installed as real binaries into
-# $GOBIN (see the tools section below). Consumer repos carry NO tool stanza and
-# vendor NO tool dependencies; this Makefile resolves every tool from $(GOBIN)
-# only and fails loudly if it is missing.
+# The canonical tool set lives in ONE place — the pinned manifest
+# nicerobot/tools.build/go-tooling/tools.txt — and is installed as real binaries
+# into $GOBIN via `go install path@version` (see the tools section below).
+# Consumer repos carry NO tool stanza and vendor NO tool dependencies; this
+# Makefile resolves every tool from $(GOBIN) only and fails loudly if it is
+# missing.
 
 # A Self-Documenting Makefile: http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .DEFAULT_GOAL := test

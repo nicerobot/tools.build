@@ -2,10 +2,12 @@
 #
 # Go quality toolchain image.
 #
-# Stage 1 compiles every tool declared in go.mod's `tool` block into static
-# binaries. Stage 2 is the full official Go image (consumers still need `go`
-# itself to build/test/vet) with those binaries on $PATH plus the includable
-# tools.mk and default configs under /opt/go-tooling.
+# Stage 1 installs every tool pinned in tools.txt into static binaries with the
+# SAME install-tools.sh a developer runs locally, then verify-tools.sh asserts the
+# baked versions match the manifest — so the image and ~/go/bin are byte-identical.
+# Stage 2 is the full official Go image (consumers still need `go` itself to
+# build/test/vet) with those binaries on $PATH plus the includable tools.mk and
+# default configs under /opt/go-tooling.
 
 # Latest official Go image. The bundled tools require Go >= 1.25.
 # Override at build time: docker build --build-arg GO_VERSION=1.26 ...
@@ -17,16 +19,14 @@ ENV GOBIN=/tools/bin \
     CGO_ENABLED=0
 WORKDIR /src
 
-# Resolve the module graph first so it caches independently of source changes.
-COPY go.mod go.sum ./
+# Install the pinned tool set from the manifest, then assert it matches — the
+# identical scripts and manifest used locally, so CI and ~/go/bin never diverge.
+COPY tools.txt tools-lib.sh install-tools.sh verify-tools.sh ./
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    go mod download
-
-# Compile every tool in the `tool` block into $GOBIN in one shot.
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    go install tool
+    chmod +x ./install-tools.sh ./verify-tools.sh \
+    && ./install-tools.sh \
+    && ./verify-tools.sh
 
 # ---------------------------------------------------------------------------
 FROM golang:${GO_VERSION}
