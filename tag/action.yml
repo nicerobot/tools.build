@@ -1,0 +1,25 @@
+name: "Auto Tag"
+description: "Compute the next SemVer tag from Conventional Commits since the last tag — capped at minor, never major — and push it. Seeds an untagged repo at v0.1.0."
+branding:
+  icon: "tag"
+  color: "blue"
+inputs:
+  seed-version:
+    description: "Tag to create when the repo has no existing vX.Y.Z tag."
+    required: false
+    default: "v0.1.0"
+outputs:
+  version:
+    description: "Resulting tag — the new one, or the latest existing when there was nothing to release."
+    value: ${{ steps.tag.outputs.version }}
+  bumped:
+    description: "'true' when a new tag was created and pushed; 'false' when nothing was released."
+    value: ${{ steps.tag.outputs.bumped }}
+runs:
+  using: "composite"
+  steps:
+    - id: tag
+      shell: bash
+      env:
+        SEED_VERSION: ${{ inputs.seed-version }}
+      run: bash "${GITHUB_ACTION_PATH}/tag.sh"
