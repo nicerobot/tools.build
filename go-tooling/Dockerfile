@@ -53,6 +53,13 @@ ENV GO_TOOLING_DIR=/opt/go-tooling
 COPY tools.mk .golangci.yml entrypoint.sh ${GO_TOOLING_DIR}/
 RUN chmod +x ${GO_TOOLING_DIR}/entrypoint.sh
 
+# Central stickler config (the GLOBAL layer `make lint` inherits — yze soft, etc.).
+# stickler resolves its global config from $XDG_CONFIG_HOME/stickler/config.yaml,
+# so baking the file and pointing XDG_CONFIG_HOME here makes the default
+# deterministic in CI regardless of HOME. A repo's .stickler.yaml layers over it.
+COPY stickler.config.yaml ${GO_TOOLING_DIR}/stickler/config.yaml
+ENV XDG_CONFIG_HOME=${GO_TOOLING_DIR}
+
 # Consuming CI checks out the repo here (Docker GitHub Actions override this
 # with /github/workspace automatically).
 WORKDIR /src

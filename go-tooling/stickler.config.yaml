@@ -1,0 +1,16 @@
+# Central stickler configuration for the gomatic Go toolchain — the GLOBAL layer
+# every repo's `make lint` (which runs stickler) inherits. A repo's own
+# .stickler.yaml layers OVER this (per-repo golangci overlays, runner selection,
+# soft-fail ratcheting).
+#
+# yze (the gomatic analyzer suite) runs everywhere for VISIBILITY but is SOFT
+# during rollout: its findings are reported on every lint run yet do not fail the
+# build. A repo ratchets it to hard as it cleans up — whole tool or analyzer by
+# analyzer — from its .stickler.yaml, e.g.:
+#
+#   soft: { remove: [yze] }            # make every yze analyzer hard
+#   soft: { remove: [yze/ptrrecv] }    # make just one analyzer hard
+#
+# golangci-lint is hard (gating) from day one; its per-repo deltas live under
+# `config: { golangci-lint: ... }` in the repo's .stickler.yaml.
+soft: [yze]
