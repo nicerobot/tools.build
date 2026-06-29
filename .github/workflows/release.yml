@@ -49,6 +49,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: sigstore/cosign-installer@v3
+      - id: meta
+        # Derive the major alias from the SemVer tag (v2.1.0 -> v2; a bare v2 maps
+        # to itself) so consumers pinning :vMAJOR always get the latest of that
+        # major — the uniform container-versioning scheme: :vX.Y.Z, :vX, :latest.
+        env:
+          TAG: ${{ github.ref_name }}
+        run: echo "major=${TAG%%.*}" >> "$GITHUB_OUTPUT"
       - id: build
         uses: docker/build-push-action@v6
         with:
@@ -56,6 +63,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ steps.meta.outputs.major }}
             ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:latest
           provenance: true
           sbom: true

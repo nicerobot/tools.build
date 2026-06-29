@@ -18,6 +18,7 @@
 mvdan.cc/gofumpt@v0.10.0
 golang.org/x/tools/cmd/goimports@v0.47.0
 github.com/daixiang0/gci@v0.14.0
+github.com/segmentio/golines@v0.13.0
 
 # Linting & static analysis
 github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2

@@ -14,7 +14,7 @@ Every tool is pinned in a single manifest, [`tools.txt`](tools.txt) (one `import
 
 | Category | Tools |
 | --- | --- |
-| Format | `gofumpt`, `goimports`, `gci` |
+| Format | `gofumpt`, `goimports`, `gci`, `golines` (line length) |
 | Lint (aggregate) | `golangci-lint` (v2) |
 | Style / correctness | `revive`, `errcheck`, `ineffassign`, `misspell`, `staticcheck` |
 | Static analysis | `go vet`, `staticcheck`, `deadcode`, `nilaway` |
@@ -139,4 +139,4 @@ make tool-versions   # print bundled tool versions
 make upgrade         # bump every tool in tools.txt to @latest and reinstall
 ```
 
-The image is published by [`release.yml`](../.github/workflows/release.yml) on `v*` tags as `ghcr.io/nicerobot/tools.build/go-tooling:<tag>` and `:latest`.
+The image is published by [`release.yml`](../.github/workflows/release.yml) on `v*` tags as three tags: `:<vX.Y.Z>` (exact), `:<vX>` (major alias — what consumers pin), and `:latest`. So `…/go-tooling:v2` always resolves to the latest `2.x` release.

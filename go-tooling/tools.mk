@@ -27,6 +27,8 @@ COVER_PROFILE   ?= coverage.out
 GOCYCLO_OVER    ?= 15
 GOCOGNIT_OVER   ?= 20
 DUPL_THRESHOLD  ?= 100
+# Maximum source line length enforced by golines (it shortens longer lines).
+GOLINES_MAX     ?= 120
 
 # golangci-lint config: prefer a repo-local copy, fall back to the image default.
 # (revive runs as part of golangci-lint and is configured in this YAML file —
@@ -58,13 +60,16 @@ tool-versions: ## Print the version of every bundled tool
 # ---------------------------------------------------------------------------
 
 .PHONY: fmt
-fmt: ## Format code (gofumpt, goimports, gci)
+fmt: ## Format code (golines, gofumpt, goimports, gci)
+	golines -m $(GOLINES_MAX) -w $(GO_DIRS)
 	gofumpt -extra -w $(GO_DIRS)
 	goimports -w $(GO_DIRS)
 	gci write --skip-generated -s standard -s default -s localmodule $(GO_DIRS)
 
 .PHONY: fmt-check
 fmt-check: ## Fail if any file is not formatted
+	@out="$$(golines -m $(GOLINES_MAX) -l $(GO_DIRS))"; \
+	if [ -n "$$out" ]; then echo "lines exceed $(GOLINES_MAX) cols (run 'make fmt'):"; echo "$$out"; exit 1; fi
 	@out="$$(gofumpt -extra -l $(GO_DIRS))"; \
 	if [ -n "$$out" ]; then echo "not gofumpt-formatted:"; echo "$$out"; exit 1; fi
 	@out="$$(goimports -l $(GO_DIRS))"; \
