@@ -15,8 +15,14 @@ ARG GO_VERSION=1.26
 
 FROM golang:${GO_VERSION} AS tools
 
+# Resolve the first-party gomatic tools (stickler, yze) straight from their public
+# Git repos, bypassing the module proxy + checksum DB. They are version-pinned in
+# tools.txt and only just went public, so sum.golang.org has not indexed them yet
+# (and the proxy cached their prior private 404); a direct anonymous clone is
+# deterministic where the proxy/sumdb path is not.
 ENV GOBIN=/tools/bin \
-    CGO_ENABLED=0
+    CGO_ENABLED=0 \
+    GOPRIVATE=github.com/gomatic
 WORKDIR /src
 
 # Install the pinned tool set from the manifest, then assert it matches — the
