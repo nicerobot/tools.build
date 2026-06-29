@@ -36,9 +36,13 @@ done < <(manifest_specs)
 # Install the central stickler config (the GLOBAL layer `make lint` inherits) so a
 # developer's local lint matches CI — stickler reads $XDG_CONFIG_HOME/stickler/
 # config.yaml, defaulting to ~/.config. A repo's .stickler.yaml layers over it.
-stickler_config_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/stickler"
-mkdir -p "${stickler_config_dir}"
-cp "${here}/stickler.config.yaml" "${stickler_config_dir}/config.yaml"
-echo "installed central stickler config -> ${stickler_config_dir}/config.yaml"
+# Skipped when the source is absent: the go-tooling image's tools stage runs this
+# to build binaries and does not COPY the config (its final stage installs it).
+if [[ -f "${here}/stickler.config.yaml" ]]; then
+  stickler_config_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/stickler"
+  mkdir -p "${stickler_config_dir}"
+  cp "${here}/stickler.config.yaml" "${stickler_config_dir}/config.yaml"
+  echo "installed central stickler config -> ${stickler_config_dir}/config.yaml"
+fi
 
 echo "done. add ${gobin} to PATH to run the tools by name."
