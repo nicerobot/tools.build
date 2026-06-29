@@ -130,9 +130,13 @@ tools-version: ## Print the version of every pinned tool (from ${GOBIN})
 GORELEASER_CONFIG ?= $(firstword $(wildcard .goreleaser.yaml .goreleaser.yml))
 BINARIES ?= $(shell test -n '$(GORELEASER_CONFIG)' && yq '.project_name as $$pn | .builds[] | select(.skip != true) | .id // $$pn | sub("\{\{.*\}\}", $$pn)' '$(GORELEASER_CONFIG)' 2>/dev/null)
 
-# SUBMODULES: nested modules (own go.mod), excluding vendored/test-fixture mods
-# and Terraform-downloaded module sources under .terraform/.
-SUBMODULES ?= $(patsubst ./%/,%,$(dir $(shell find . -mindepth 2 -name go.mod -not -path '*/vendor/*' -not -path '*/testdata/*' -not -path '*/fixtures/*' -not -path '*/.terraform/*' -not -path '*/tools/*')))
+# SUBMODULES: nested modules (own go.mod), excluding vendored/test-fixture mods,
+# Terraform-downloaded module sources under .terraform/, and anything beneath a
+# `_`-prefixed directory (e.g. _legacy/). The go tool itself ignores `_`-prefixed
+# (and `.`-prefixed) directories, so a stale, package-less, or otherwise
+# unbuildable module parked under one must NOT enter the vet/test/cover fan-out —
+# it would fail `go vet -C <dir> ./...` with "matched no packages" or stale deps.
+SUBMODULES ?= $(patsubst ./%/,%,$(dir $(shell find . -mindepth 2 -name go.mod -not -path '*/vendor/*' -not -path '*/testdata/*' -not -path '*/fixtures/*' -not -path '*/.terraform/*' -not -path '*/tools/*' -not -path '*/_*/*')))
 
 BUILD_DIR ?= bin
 GOOS      ?= $(shell go env GOOS)
