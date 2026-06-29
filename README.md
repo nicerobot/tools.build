@@ -17,6 +17,6 @@ Spec: [`nicerobot/projects` → `specs/tools.build-consolidation/`](https://gith
 
 ## The single tool set
 
-The Go tool set and its versions live **once** in [`go-tooling/tools.txt`](go-tooling/tools.txt) (19 tools, one pinned `importpath@version` each), installed via `go install path@version` into `$GOBIN` — identically by a developer's `make tools` and by the `go-tooling` image, so `~/go/bin` and CI hold the same versions. `scripts/check-alignment.sh` fails CI if the `build/go` Makefile invokes a tool the manifest does not provide.
+The Go tool set and its versions live **once** in [`go-tooling/tools.txt`](go-tooling/tools.txt) (19 tools, one pinned `importpath@version` each), installed via `go install path@version` into `${GOBIN}` — identically by a developer's `make tools` and by the `go-tooling` image, so `~/go/bin` and CI hold the same versions. `scripts/check-alignment.sh` fails CI if the `build/go` Makefile invokes a tool the manifest does not provide.
 
 Quality bar (enforced by the shared golangci config): cognitive complexity ≤ 7, cyclomatic ≤ 12, plus the full linter/security/vulnerability suite.

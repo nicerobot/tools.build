@@ -1,5 +1,5 @@
 #!/bin/bash
-# go-doctor — verify $GOBIN tool versions match the manifest, and warn when a
+# go-doctor — verify ${GOBIN} tool versions match the manifest, and warn when a
 # Homebrew copy shadows one.
 #
 # First it runs verify-tools.sh: the proof that ~/go/bin holds exactly the
@@ -37,7 +37,7 @@ while IFS= read -r path; do
   resolved="$(command -v "${tool}" 2>/dev/null || true)"
   case "${resolved}" in
     "${prefix}"/*)
-      echo "WARNING: '${tool}' resolves to a Homebrew copy at ${resolved} — the gate uses the pinned \$GOBIN/${tool}."
+      echo "WARNING: '${tool}' resolves to a Homebrew copy at ${resolved} — the gate uses the pinned \${GOBIN}/${tool}."
       shadowed=1
       ;;
   esac
@@ -46,5 +46,5 @@ done < <(manifest_paths)
 if [[ "${shadowed}" -eq 0 ]]; then
   echo 'doctor: no Homebrew-shadowed tools — bare-name runs resolve to the pinned GOBIN.'
 else
-  echo "  -> 'brew uninstall <tool>' (and put \$GOBIN ahead on PATH) to stop the shadow."
+  echo "  -> 'brew uninstall <tool>' (and put \${GOBIN} ahead on PATH) to stop the shadow."
 fi

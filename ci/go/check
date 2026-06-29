@@ -2,8 +2,8 @@
 # ci — Go quality gate. Runs the shared build/go/Makefile `ci` target when the
 # repo has first-party packages; otherwise just prints the pinned tool versions
 # (the case for a repo that ships no packages of its own). The quality tools are
-# baked into $GOBIN by the go-tooling base image, so no tool stanza or vendored
-# tooling is needed and the gate resolves every tool from $GOBIN.
+# baked into ${GOBIN} by the go-tooling base image, so no tool stanza or vendored
+# tooling is needed and the gate resolves every tool from ${GOBIN}.
 set -o errexit
 set -o nounset
 set -o pipefail
@@ -13,8 +13,8 @@ if [[ -n "${pkgs}" ]]; then
   exec make ci
 fi
 
-# No first-party packages: print the pinned tool versions from $GOBIN as a smoke
+# No first-party packages: print the pinned tool versions from ${GOBIN} as a smoke
 # test that the baked toolchain is present — WITHOUT the go.mod mutation that
 # `make tools` does (which must never touch a mounted working tree).
-echo "no first-party packages — reporting the pinned tool versions from \$GOBIN"
+echo "no first-party packages — reporting the pinned tool versions from \${GOBIN}"
 exec make tools-version

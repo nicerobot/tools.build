@@ -43,7 +43,7 @@ jobs:
       - name: run the gate exactly as locally
         env:
           GATE: ${{ matrix.gate }}
-        run: bin/workflow "$GATE"
+        run: bin/workflow "${GATE}"
 
   tag:
     name: auto-tag contract (tag.sh)
@@ -66,4 +66,4 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - name: gitleaks
-        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest detect --source=/repo --no-banner
+        run: docker run --rm -v "${PWD}:/repo" ghcr.io/gitleaks/gitleaks:latest detect --source=/repo --no-banner

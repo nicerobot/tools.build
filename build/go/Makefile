@@ -28,11 +28,11 @@
 #   make lint test build           # from inside any repo
 #
 # CI checks out only that repo and runs `make ci` inside the nicerobot/tools.build
-# go gate, whose image bakes the pinned tool set into $GOBIN — so the repo needs
+# go gate, whose image bakes the pinned tool set into ${GOBIN} — so the repo needs
 # no tool stanza and no vendored tooling:
 #   - uses: actions/checkout@v5
 #   - uses: nicerobot/tools.build/ci/go@v2     # FROM the go-tooling image; runs `make ci`
-# (Run the gate locally with `make tools` once to populate $GOBIN, then `make ci`.)
+# (Run the gate locally with `make tools` once to populate ${GOBIN}, then `make ci`.)
 #
 # Everything else is derived from the repo's own source of truth:
 #   BINARIES   <- the `id:` values under `builds:` in ./.goreleaser.yml
@@ -41,7 +41,7 @@
 #
 # The canonical tool set lives in ONE place — the pinned manifest
 # nicerobot/tools.build/go-tooling/tools.txt — and is installed as real binaries
-# into $GOBIN via `go install path@version` (see the tools section below).
+# into ${GOBIN} via `go install path@version` (see the tools section below).
 # Consumer repos carry NO tool stanza and vendor NO tool dependencies; this
 # Makefile resolves every tool from $(GOBIN) only and fails loudly if it is
 # missing.
@@ -56,16 +56,16 @@ help: ## This help
 # --------------------------------------------------------------------------- #
 # tools
 # --------------------------------------------------------------------------- #
-# Tools are resolved from $GOBIN and ONLY $GOBIN — never PATH, never
+# Tools are resolved from ${GOBIN} and ONLY ${GOBIN} — never PATH, never
 # $(go env GOPATH)/bin. They are provisioned there OUT OF BAND, not by this
 # Makefile, which never builds or discovers a tool:
 #
 #   • Locally — `make tools` (delegates to the tools.build installer script,
-#     which persists GOBIN to $$HOME/go/bin when unset, then installs).
+#     which persists GOBIN to ${HOME}/go/bin when unset, then installs).
 #   • In CI — the nicerobot/tools.build go gate runs inside the go-tooling image,
 #     which bakes the same pinned binaries and sets GOBIN to where they live.
 #
-# Why $GOBIN only: a tool the gate silently picks up from PATH (e.g. a `brew
+# Why ${GOBIN} only: a tool the gate silently picks up from PATH (e.g. a `brew
 # install`ed copy) would be an unpinned, drifting version masquerading as the
 # canonical one. Resolving every tool by its absolute $(GOBIN)/<name> path makes
 # a brew/PATH copy irrelevant to the gate. (`make doctor` warns when a brew copy
@@ -78,7 +78,7 @@ help: ## This help
 # so `make help`/`clean` work without GOBIN, but any gate target requires it.
 GO    ?= go
 GOBIN := $(strip $(shell $(GO) env GOBIN))
-gobin-or-die = $(or $(GOBIN),$(error GOBIN is not set — run 'make tools' (it persists GOBIN and installs the pinned tools); the gate resolves tools from $$GOBIN only, no PATH/GOPATH fallback))
+gobin-or-die = $(or $(GOBIN),$(error GOBIN is not set — run 'make tools' (it persists GOBIN and installs the pinned tools); the gate resolves tools from $${GOBIN} only, no PATH/GOPATH fallback))
 
 GOLANGCI_LINT = $(gobin-or-die)/golangci-lint
 STICKLER      = $(gobin-or-die)/stickler
@@ -99,15 +99,15 @@ GOLINES_MAX ?= 120
 TOOLS_BUILD ?= $(HOME)/src/github.com/nicerobot/tools.build
 
 .PHONY: tools
-tools: ## Install the canonical tool set into $GOBIN (bootstraps GOBIN if unset)
+tools: ## Install the canonical tool set into ${GOBIN} (bootstraps GOBIN if unset)
 	$(TOOLS_BUILD)/scripts/go-install-tools.sh
 
 .PHONY: doctor
-doctor: ## Warn if a Homebrew copy shadows a pinned $GOBIN tool for bare-name runs
+doctor: ## Warn if a Homebrew copy shadows a pinned ${GOBIN} tool for bare-name runs
 	$(TOOLS_BUILD)/scripts/go-doctor.sh
 
 .PHONY: tools-version
-tools-version: ## Print the version of every pinned tool (from $GOBIN)
+tools-version: ## Print the version of every pinned tool (from ${GOBIN})
 	$(GOLANGCI_LINT) version
 	$(STATICCHECK) -version
 	$(GOFUMPT) --version
@@ -123,8 +123,8 @@ tools-version: ## Print the version of every pinned tool (from $GOBIN)
 # either .goreleaser.yaml or .goreleaser.yml; an id that is itself a
 # `{{ .ProjectName }}` template — or absent — resolves to the project_name value,
 # while literal ids pass through unchanged.
-# The yq pipeline: bind project_name as $pn, take each build id (falling back to
-# $pn when a build sets none), and replace a `{{ ... }}` template id with $pn —
+# The yq pipeline: bind project_name as ${pn}, take each build id (falling back to
+# ${pn} when a build sets none), and replace a `{{ ... }}` template id with ${pn} —
 # so a literal id passes through and a `{{ .ProjectName }}` id resolves to the
 # project name. One yq call, no shell loop.
 GORELEASER_CONFIG ?= $(firstword $(wildcard .goreleaser.yaml .goreleaser.yml))
@@ -233,7 +233,7 @@ endef
 standards-validate: ## Validate .standards.yaml exemptions carry reasons
 	@test -f $(STANDARDS_FILE) || exit 0; \
 	bad=$$(yq -r '.exempt // {} | to_entries | map(select(.value == null or .value == "")) | .[].key' $(STANDARDS_FILE) 2>/dev/null); \
-	test -z "$$bad" || { echo "STANDARDS: exemptions missing a reason: $$bad" >&2; exit 1; }
+	test -z "$${bad}" || { echo "STANDARDS: exemptions missing a reason: $${bad}" >&2; exit 1; }
 
 # `check` is the comprehensive DEVELOPER gate: run it locally before pushing. It
 # is the static + `vulncheck` + 100%-`cover` core that `ci` ALSO enforces, so a
@@ -272,7 +272,7 @@ $(VET_SUBMODULES): vet@%:
 # stickler shells out to golangci-lint/yze by name, so $(GOBIN) is prepended to PATH.
 .PHONY: lint-raw
 lint-raw: vet
-	PATH="$(GOBIN):$$PATH" $(STICKLER)
+	PATH="$(GOBIN):$${PATH}" $(STICKLER)
 
 .PHONY: lint
 lint: ## Run the stickler lint suite (golangci-lint + yze; ratchet-aware; .stickler.yaml-merged config)
@@ -332,8 +332,8 @@ coverage: $(COVERAGE_FOLDER) ## Run tests with coverage
 cover: $(COVERAGE_FOLDER) ## Run tests and assert COVER_THRESHOLD coverage of COVER_PKGS
 	$(GOTESTSUM) --format $(GO_TEST_FORMAT) -- -covermode=$(COVER_MODE) -coverpkg=$(COVERPKG) -coverprofile=$(COVERAGE_FOLDER)/coverage.out $(COVER_PKGS)
 	@total=$$(go tool cover -func=$(COVERAGE_FOLDER)/coverage.out | awk '/^total:/{print $$3}'); \
-	echo "total coverage: $$total"; \
-	[ "$$total" = "$(COVER_THRESHOLD)" ] || { echo "coverage $$total below $(COVER_THRESHOLD):"; go tool cover -func=$(COVERAGE_FOLDER)/coverage.out | awk '$$3 != "100.0%"'; exit 1; }
+	echo "total coverage: $${total}"; \
+	[ "$${total}" = "$(COVER_THRESHOLD)" ] || { echo "coverage $${total} below $(COVER_THRESHOLD):"; go tool cover -func=$(COVERAGE_FOLDER)/coverage.out | awk '$$3 != "100.0%"'; exit 1; }
 
 # Build-tag-gated tests (integration, e2e, ...). The shared `test`/`test-all`
 # targets run only UNTAGGED unit tests; anything behind a `//go:build <tag>`
@@ -474,7 +474,7 @@ fmt: ## Format code (golines then gofumpt)
 .PHONY: fmt-check
 fmt-check: ## Fail if any line exceeds GOLINES_MAX (gofumpt/imports are enforced by lint)
 	@out="$$($(GOLINES) -m $(GOLINES_MAX) -l .)"; \
-	if [ -n "$$out" ]; then echo "lines exceed $(GOLINES_MAX) cols (run 'make fmt'):"; echo "$$out"; exit 1; fi
+	if [ -n "$${out}" ]; then echo "lines exceed $(GOLINES_MAX) cols (run 'make fmt'):"; echo "$${out}"; exit 1; fi
 
 .PHONY: generate
 generate: ## Generate code

@@ -56,7 +56,7 @@ Backward compatible: **no `.standards.yaml` → byte-identical behavior to today
   - capability not in `EXEMPT` → run `X-raw`, pass its exit through (today's behavior).
   - in `EXEMPT` + `X-raw` fails → print "exempt (known gap)" and succeed.
   - in `EXEMPT` + `X-raw` passes → print "stale exemption" and **fail**.
-- `EXEMPT` is computed once via `yq` reading `.standards.yaml` (yq is already in the gate image). The wrapper is a make `define` in the distributed Makefile — no external script, so it works unchanged inside the CI image and in local `$GOBIN` runs.
+- `EXEMPT` is computed once via `yq` reading `.standards.yaml` (yq is already in the gate image). The wrapper is a make `define` in the distributed Makefile — no external script, so it works unchanged inside the CI image and in local `${GOBIN}` runs.
 
 ## distribute integration (tools.repository)
 
@@ -86,7 +86,7 @@ Backward compatible: **no `.standards.yaml` → byte-identical behavior to today
 
 ## Deferred (separate spec, queued)
 
-Extract the convention analyzers in `robertcnix/fmt.fmtctl internal/domain/code/languages/go/lint/` into `gomatic/analyzers/<name>/v1` modules, each exposing a `golang.org/x/tools/go/analysis.Analyzer` (testable via `analysistest` to 100%), aggregated by one pinned `gomatic-vet` multichecker `$GOBIN` tool run as a gate step. This spec only **reserves** the `convention:*` namespace; the analyzers and their gate wiring are a separate brainstorm→spec→implement cycle.
+Extract the convention analyzers in `robertcnix/fmt.fmtctl internal/domain/code/languages/go/lint/` into `gomatic/analyzers/<name>/v1` modules, each exposing a `golang.org/x/tools/go/analysis.Analyzer` (testable via `analysistest` to 100%), aggregated by one pinned `gomatic-vet` multichecker `${GOBIN}` tool run as a gate step. This spec only **reserves** the `convention:*` namespace; the analyzers and their gate wiring are a separate brainstorm→spec→implement cycle.
 
 ## Non-goals
 

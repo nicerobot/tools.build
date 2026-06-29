@@ -39,7 +39,7 @@ jobs:
           go-version: '1.26'
           check-latest: true
       - name: install the pinned tool set
-        # Install exactly the manifest into $GOBIN — the same path local dev and
+        # Install exactly the manifest into ${GOBIN} — the same path local dev and
         # the go-tooling image use — so this scan covers the binaries CI ships.
         run: go-tooling/install-tools.sh
       - name: govulncheck (toolchain CVE scan)

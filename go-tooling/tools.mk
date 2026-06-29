@@ -1,7 +1,7 @@
 # tools.mk — Go quality toolchain targets.
 #
 # This file is shipped inside the go-tooling image at /opt/go-tooling/tools.mk.
-# Every tool it invokes is precompiled into the image and on $PATH, so a
+# Every tool it invokes is precompiled into the image and on ${PATH}, so a
 # consuming repository needs none of them in its own go.mod.
 #
 # Use it one of two ways from a repo running inside the image:
@@ -69,13 +69,13 @@ fmt: ## Format code (golines, gofumpt, goimports, gci)
 .PHONY: fmt-check
 fmt-check: ## Fail if any file is not formatted
 	@out="$$(golines -m $(GOLINES_MAX) -l $(GO_DIRS))"; \
-	if [ -n "$$out" ]; then echo "lines exceed $(GOLINES_MAX) cols (run 'make fmt'):"; echo "$$out"; exit 1; fi
+	if [ -n "$${out}" ]; then echo "lines exceed $(GOLINES_MAX) cols (run 'make fmt'):"; echo "$${out}"; exit 1; fi
 	@out="$$(gofumpt -extra -l $(GO_DIRS))"; \
-	if [ -n "$$out" ]; then echo "not gofumpt-formatted:"; echo "$$out"; exit 1; fi
+	if [ -n "$${out}" ]; then echo "not gofumpt-formatted:"; echo "$${out}"; exit 1; fi
 	@out="$$(goimports -l $(GO_DIRS))"; \
-	if [ -n "$$out" ]; then echo "imports not formatted:"; echo "$$out"; exit 1; fi
+	if [ -n "$${out}" ]; then echo "imports not formatted:"; echo "$${out}"; exit 1; fi
 	@out="$$(gci diff --skip-generated -s standard -s default -s localmodule $(GO_DIRS))"; \
-	if [ -n "$$out" ]; then echo "imports not gci-ordered:"; echo "$$out"; exit 1; fi
+	if [ -n "$${out}" ]; then echo "imports not gci-ordered:"; echo "$${out}"; exit 1; fi
 
 # ---------------------------------------------------------------------------
 # Modules
@@ -92,13 +92,13 @@ tidy-check: ## Fail if go.mod/go.sum are not tidy
 	$(GO) mod tidy; \
 	rc=0; \
 	diff -q go.mod go.mod.bak >/dev/null 2>&1 || rc=1; \
-	if [ "$$had_sum" = 1 ]; then \
+	if [ "$${had_sum}" = 1 ]; then \
 	  diff -q go.sum go.sum.bak >/dev/null 2>&1 || rc=1; \
 	elif [ -f go.sum ]; then rc=1; fi; \
-	[ "$$rc" = 1 ] && echo "go.mod/go.sum are not tidy — run 'make tidy'"; \
+	[ "$${rc}" = 1 ] && echo "go.mod/go.sum are not tidy — run 'make tidy'"; \
 	mv go.mod.bak go.mod; \
-	if [ "$$had_sum" = 1 ]; then mv go.sum.bak go.sum; else rm -f go.sum; fi; \
-	exit $$rc
+	if [ "$${had_sum}" = 1 ]; then mv go.sum.bak go.sum; else rm -f go.sum; fi; \
+	exit $${rc}
 
 # ---------------------------------------------------------------------------
 # Linting & static analysis

@@ -1,5 +1,5 @@
 #!/bin/bash
-# go-install-tools — install the pinned Go tool set into $GOBIN.
+# go-install-tools — install the pinned Go tool set into ${GOBIN}.
 #
 # Stable entrypoint for consumers (`$(TOOLS_BUILD)/scripts/go-install-tools.sh`),
 # delegating to the manifest installer that the go-tooling image also uses — so a

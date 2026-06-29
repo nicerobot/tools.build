@@ -3,7 +3,7 @@
 #   1. every tool the go build Makefile INVOKES (via $(gobin-or-die)/<name>) is
 #      PROVIDED by the go-tooling tools.txt manifest. The canonical tool set + its
 #      versions live ONLY in go-tooling/tools.txt now; the Makefile no longer
-#      duplicates that list (it resolves binaries from $GOBIN), it only references
+#      duplicates that list (it resolves binaries from ${GOBIN}), it only references
 #      binary names — so the invariant is a SUBSET check, not list equality. This
 #      catches a Makefile that calls a tool the central image would not bake.
 #   2. build/go/.golangci.yaml is byte-identical to go-tooling/.golangci.yml.
@@ -26,13 +26,13 @@ readonly consumer_cfg="${here}/build/go/.golangci.yaml"
 # shellcheck disable=SC1091 # sourced lib is its own shellcheck input
 source "${here}/go-tooling/tools-lib.sh"
 
-# Binary names PROVIDED by the tools.txt manifest (the names that land in $GOBIN).
+# Binary names PROVIDED by the tools.txt manifest (the names that land in ${GOBIN}).
 manifest_bins() {
   while IFS= read -r path; do tool_bin "${path}"; done < <(manifest_paths) | sort -u
 }
 
 # Binary names the Makefile INVOKES, taken from its $(gobin-or-die)/<name> tool
-# variable assignments (the only way the gate names a tool in the $GOBIN model).
+# variable assignments (the only way the gate names a tool in the ${GOBIN} model).
 makefile_bins() {
   grep -oE 'gobin-or-die\)/[A-Za-z0-9_-]+' "${makefile}" | sed 's#.*/##' | sort -u
 }

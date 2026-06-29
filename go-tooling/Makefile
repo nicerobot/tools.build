@@ -6,8 +6,8 @@
 # test/cover/tidy) do not apply; the meaningful gate is that the manifest installs,
 # the installed binaries match it, and they are vulnerability-clean:
 #
-#   • tools     — install the manifest into $GOBIN (the developer/CI install path)
-#   • verify    — assert $GOBIN matches tools.txt (the local==CI proof)
+#   • tools     — install the manifest into ${GOBIN} (the developer/CI install path)
+#   • verify    — assert ${GOBIN} matches tools.txt (the local==CI proof)
 #   • vulncheck — govulncheck -mode=binary over every installed tool
 #
 # All real logic lives in checked-in scripts under ../scripts and the install/
@@ -40,11 +40,11 @@ check: tools verify vulncheck ## Full gate: install the manifest, prove versions
 ci: check ## CI gate (image build is separate — see `build` / the release workflow)
 
 .PHONY: tools
-tools: ## Install the pinned tool set (tools.txt) into $GOBIN
+tools: ## Install the pinned tool set (tools.txt) into ${GOBIN}
 	$(here)install-tools.sh
 
 .PHONY: verify
-verify: ## Assert installed $GOBIN tools match tools.txt (the local==CI proof)
+verify: ## Assert installed ${GOBIN} tools match tools.txt (the local==CI proof)
 	$(here)verify-tools.sh
 
 .PHONY: vulncheck

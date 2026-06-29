@@ -23,12 +23,16 @@ help: ## This help
 IMAGES := go docs shell actions dockerfiles python typescript terraform hugo
 
 .PHONY: install
-install: ## Install the pinned Go tool set into $GOBIN (bootstraps GOBIN to ~/go/bin if unset)
+install: ## Install the pinned Go tool set into ${GOBIN} (bootstraps GOBIN to ~/go/bin if unset)
 	$(here)scripts/go-install-tools.sh
 
 .PHONY: doctor
-doctor: ## Warn if a Homebrew copy shadows a pinned $GOBIN Go tool
+doctor: ## Warn if a Homebrew copy shadows a pinned ${GOBIN} Go tool
 	$(here)scripts/go-doctor.sh
+
+.PHONY: deps
+deps: ## Update tools.txt — bump every pinned Go tool to its latest release
+	$(here)scripts/go-tooling-upgrade.sh
 
 .PHONY: build
 build: $(IMAGES) ## Build every workflow image

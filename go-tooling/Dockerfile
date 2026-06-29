@@ -6,7 +6,7 @@
 # SAME install-tools.sh a developer runs locally, then verify-tools.sh asserts the
 # baked versions match the manifest — so the image and ~/go/bin are byte-identical.
 # Stage 2 is the full official Go image (consumers still need `go` itself to
-# build/test/vet) with those binaries on $PATH plus the includable tools.mk and
+# build/test/vet) with those binaries on ${PATH} plus the includable tools.mk and
 # default configs under /opt/go-tooling.
 
 # Latest official Go image. The bundled tools require Go >= 1.25.
@@ -51,7 +51,7 @@ COPY --from=tools /tools/bin/ /go/bin/
 # Pin GOBIN to where the tools are baked. The shared build/go/Makefile resolves
 # every tool from $(go env GOBIN) ONLY (no PATH/GOPATH fallback) and hard-fails if
 # a tool is absent; setting GOBIN here makes that resolution succeed in CI against
-# these baked binaries, exactly as a developer's populated $GOBIN does locally.
+# these baked binaries, exactly as a developer's populated ${GOBIN} does locally.
 ENV GOBIN=/go/bin
 
 # Includable makefile, default linter configs, and the action entrypoint.
@@ -60,7 +60,7 @@ COPY tools.mk .golangci.yml entrypoint.sh ${GO_TOOLING_DIR}/
 RUN chmod +x ${GO_TOOLING_DIR}/entrypoint.sh
 
 # Central stickler config (the GLOBAL layer `make lint` inherits — yze soft, etc.).
-# stickler resolves its global config from $XDG_CONFIG_HOME/stickler/config.yaml,
+# stickler resolves its global config from ${XDG_CONFIG_HOME}/stickler/config.yaml,
 # so baking the file and pointing XDG_CONFIG_HOME here makes the default
 # deterministic in CI regardless of HOME. A repo's .stickler.yaml layers over it.
 COPY stickler.config.yaml ${GO_TOOLING_DIR}/stickler/config.yaml

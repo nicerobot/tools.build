@@ -1,5 +1,5 @@
 #!/bin/bash
-# verify-tools.sh — assert every installed tool in $GOBIN matches tools.txt.
+# verify-tools.sh — assert every installed tool in ${GOBIN} matches tools.txt.
 #
 # For each manifest spec it reads the binary's embedded main-module version with
 # `go version -m` (uniform across every Go tool, unlike each tool's bespoke

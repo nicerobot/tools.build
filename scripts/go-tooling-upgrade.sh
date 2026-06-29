@@ -1,9 +1,9 @@
 #!/bin/bash
 # go-tooling-upgrade — bump every tool in tools.txt to its latest release.
 #
-# For each pinned spec it installs path@latest into $GOBIN, reads back the
+# For each pinned spec it installs path@latest into ${GOBIN}, reads back the
 # resolved version with `go version -m`, and rewrites the manifest line to that
-# version — preserving the file's comments and grouping. After it runs, $GOBIN and
+# version — preserving the file's comments and grouping. After it runs, ${GOBIN} and
 # tools.txt are both on the new versions (verify-tools.sh passes). Commit the
 # manifest change and rebuild the image to roll the new versions to CI.
 set -o errexit
@@ -38,4 +38,4 @@ while IFS= read -r line; do
 done <"${TOOLS_MANIFEST}" >"${updated}"
 
 cp "${updated}" "${TOOLS_MANIFEST}"
-echo "updated ${TOOLS_MANIFEST}; run 'make verify' to confirm \$GOBIN matches." >&2
+echo "updated ${TOOLS_MANIFEST}; run 'make verify' to confirm \${GOBIN} matches." >&2

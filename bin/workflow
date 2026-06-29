@@ -36,7 +36,7 @@ list_workflows() {
   done
 }
 
-if [[ $# -lt 1 ]]; then
+if [[ ${#} -lt 1 ]]; then
   list_workflows
   exit 0
 fi

@@ -1,10 +1,10 @@
 #!/bin/bash
-# install-tools.sh — install the pinned tool set (tools.txt) into $GOBIN.
+# install-tools.sh — install the pinned tool set (tools.txt) into ${GOBIN}.
 #
 # Runs `go install path@version` for every manifest spec, so each tool is built
 # in its own pinned module context (no shared go.mod here). The shared go gate
 # (build/go/Makefile) resolves every tool from `go env GOBIN` ONLY, so GOBIN must
-# be set: if it is unset this bootstraps $HOME/go/bin with `go env -w` (override
+# be set: if it is unset this bootstraps ${HOME}/go/bin with `go env -w` (override
 # by setting GOBIN first, e.g. `go env -w GOBIN=/your/dir`). The go-tooling image
 # sets GOBIN before calling this, so local and CI install identically.
 set -o errexit
@@ -34,7 +34,7 @@ while IFS= read -r spec; do
 done < <(manifest_specs)
 
 # Install the central stickler config (the GLOBAL layer `make lint` inherits) so a
-# developer's local lint matches CI — stickler reads $XDG_CONFIG_HOME/stickler/
+# developer's local lint matches CI — stickler reads ${XDG_CONFIG_HOME}/stickler/
 # config.yaml, defaulting to ~/.config. A repo's .stickler.yaml layers over it.
 # Skipped when the source is absent: the go-tooling image's tools stage runs this
 # to build binaries and does not COPY the config (its final stage installs it).

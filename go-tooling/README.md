@@ -10,7 +10,7 @@ ghcr.io/nicerobot/tools.build/go-tooling:v2
 
 ## What's inside
 
-Every tool is pinned in a single manifest, [`tools.txt`](tools.txt) (one `importpath@version` per line), and compiled into the image with `go install path@version` — the same [`install-tools.sh`](install-tools.sh) a developer runs locally, so the image and `~/go/bin` hold byte-identical versions. They live on `$PATH` (`/go/bin`).
+Every tool is pinned in a single manifest, [`tools.txt`](tools.txt) (one `importpath@version` per line), and compiled into the image with `go install path@version` — the same [`install-tools.sh`](install-tools.sh) a developer runs locally, so the image and `~/go/bin` hold byte-identical versions. They live on `${PATH}` (`/go/bin`).
 
 | Category | Tools |
 | --- | --- |
@@ -91,7 +91,7 @@ build: lint test
 ### 4. Locally via Docker
 
 ```sh
-docker run --rm -v "$PWD:/src" -w /src \
+docker run --rm -v "${PWD}:/src" -w /src \
   ghcr.io/nicerobot/tools.build/go-tooling:v2 \
   make -f /opt/go-tooling/tools.mk check
 ```
@@ -130,8 +130,8 @@ The image ships a single default config at `/opt/go-tooling/.golangci.yml` — t
 ## Maintaining this image
 
 ```sh
-make tools           # install the pinned tools.txt set into $GOBIN
-make verify          # assert installed $GOBIN tools match tools.txt
+make tools           # install the pinned tools.txt set into ${GOBIN}
+make verify          # assert installed ${GOBIN} tools match tools.txt
 make doctor          # verify versions + warn on Homebrew-shadowed tools
 make build           # build the image locally as :dev
 make demo            # run the gate against a throwaway module
