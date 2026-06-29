@@ -14,14 +14,14 @@ Every tool is pinned in a single manifest, [`tools.txt`](tools.txt) (one `import
 
 | Category | Tools |
 | --- | --- |
-| Format | `gofumpt`, `goimports`, `gci`, `golines` |
+| Format | `gofumpt`, `goimports`, `gci` |
 | Lint (aggregate) | `golangci-lint` (v2) |
 | Style / correctness | `revive`, `errcheck`, `ineffassign`, `misspell`, `staticcheck` |
 | Static analysis | `go vet`, `staticcheck`, `deadcode`, `nilaway` |
 | Complexity | `gocyclo` (cyclomatic), `gocognit` (cognitive), `dupl` (duplication) |
 | Security | `gosec` |
 | Vulnerabilities | `govulncheck` |
-| Tests / coverage | `gotestsum`, `go-junit-report` |
+| Tests / coverage | `gotestsum` |
 
 `golangci-lint` additionally runs many of the above (and more) as integrated linters; the standalone binaries are there for targeted, scriptable use.
 
@@ -130,11 +130,13 @@ The image ships a single default config at `/opt/go-tooling/.golangci.yml` — t
 ## Maintaining this image
 
 ```sh
-make build           # build locally as :dev
-make verify          # validate the shipped golangci-lint config
+make tools           # install the pinned tools.txt set into $GOBIN
+make verify          # assert installed $GOBIN tools match tools.txt
+make doctor          # verify versions + warn on Homebrew-shadowed tools
+make build           # build the image locally as :dev
 make demo            # run the gate against a throwaway module
 make tool-versions   # print bundled tool versions
-make upgrade         # bump all bundled tools and re-tidy
+make upgrade         # bump every tool in tools.txt to @latest and reinstall
 ```
 
 The image is published by [`release.yml`](../.github/workflows/release.yml) on `v*` tags as `ghcr.io/nicerobot/tools.build/go-tooling:<tag>` and `:latest`.
