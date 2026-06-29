@@ -87,9 +87,9 @@ capabilities:
     kind: convention
     description: CLIs use urfave/cli/v3
     analyzer: false
-  convention:cli-version:
+  convention:cliversion:
     kind: convention
-    description: CLIs expose --version wired to ldflags -X main.version (var version)
+    description: a CLI's cmd/<app>/main.go declares `var version` and assigns it to the urfave Version field (--version; ldflags -X main.version target)
     analyzer: false
   convention:library-marker:
     kind: convention
