@@ -64,11 +64,14 @@ next-version() {
   patch=${core##*.}
   case "${bump}" in
     minor)
-      ((minor++))
+      # Arithmetic ASSIGNMENT (not the `((minor++))` post-increment, whose value is
+      # the pre-increment number — 0 when bumping a vX.0.Z minor — making the
+      # `((...))` command return exit status 1 and abort the script under `set -e`).
+      minor=$((minor + 1))
       patch=0
       ;;
     patch)
-      ((patch++))
+      patch=$((patch + 1))
       ;;
     *)
       printf >&2 'tag: ✗ unknown bump level: %s\n' "${bump}"
