@@ -86,11 +86,11 @@ capabilities:
   convention:cliv3:
     kind: convention
     description: CLIs use urfave/cli/v3 (not v1/v2)
-    analyzer: false
+    analyzer: true
   convention:cliversion:
     kind: convention
     description: a CLI's cmd/<app>/main.go declares `var version` and assigns it to the urfave Version field (--version; ldflags -X main.version target)
-    analyzer: false
+    analyzer: true
   convention:library-marker:
     kind: convention
     description: library repos carry the library.go build-tag marker
