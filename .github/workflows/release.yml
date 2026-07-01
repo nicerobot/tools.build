@@ -1,14 +1,26 @@
 # tools.build — publish every image to GHCR on a v* tag, with SBOM + provenance
 # (build-push-action attestations) and a keyless cosign signature (spec R8/R17).
 # Hardened per R15: scoped permissions, repo guard, no persisted credentials.
+#
+# Callable two ways: directly on a `v*` tag push (manual `git tag && git push`),
+# or as a reusable workflow invoked by release-please.yml once it tags a release
+# itself — the default GITHUB_TOKEN release-please uses can't re-trigger this
+# workflow's own tag-push event, so release-please.yml calls it in-run instead
+# via `uses:` and passes the tag it just created through the `tag` input.
 name: release
 
 on:
   push:
     tags: ['v*']
+  workflow_call:
+    inputs:
+      tag:
+        description: 'Release tag (vX.Y.Z) to publish; defaults to the pushed tag ref'
+        required: false
+        type: string
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -53,16 +65,21 @@ jobs:
         # Derive the major alias from the SemVer tag (v2.1.0 -> v2; a bare v2 maps
         # to itself) so consumers pinning :vMAJOR always get the latest of that
         # major — the uniform container-versioning scheme: :vX.Y.Z, :vX, :latest.
+        # TAG is the workflow_call input when release-please.yml invokes this
+        # workflow directly (its own tag push can't retrigger this workflow's
+        # `on: push: tags` event), else the pushed tag ref itself.
         env:
-          TAG: ${{ github.ref_name }}
-        run: echo "major=${TAG%%.*}" >> "$GITHUB_OUTPUT"
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "major=${TAG%%.*}" >> "$GITHUB_OUTPUT"
       - id: build
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.image.context }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ steps.meta.outputs.tag }}
             ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ steps.meta.outputs.major }}
             ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:latest
           provenance: true
