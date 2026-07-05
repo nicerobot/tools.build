@@ -95,3 +95,15 @@ capabilities:
     kind: convention
     description: library repos carry the library.go build-tag marker
     analyzer: false
+
+  # ---- classification (repo-class marker drift; verified live by the standards
+  #      engine in `git repo standards verify`, not the per-repo make gate) -------
+  # Keyed by the bare analyzer name (not dotted) because the standards engine's
+  # exemption filter uses the analyzer's own name as the .standards.yaml key. A
+  # root-go.mod module that is neither a CLI (cmd/<binary>/) nor a library
+  # (library.go) — e.g. an integration-test harness or other non-distributable
+  # module — exempts this to declare it is deliberately unclassified.
+  classification:
+    kind: convention
+    description: a root-go.mod module carries exactly one class marker (cmd/<binary>/ or library.go, or an owner-granted root main.go)
+    analyzer: true

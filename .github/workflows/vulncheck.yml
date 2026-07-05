@@ -30,6 +30,13 @@ jobs:
     if: github.event_name != 'schedule' || github.repository == 'nicerobot/tools.build'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # The pinned first-party tools (stickler, yze, and its analyzer modules) are
+    # public but recently so — sum.golang.org has not indexed them and the proxy
+    # cached their prior private 404s. GOPRIVATE routes `go install` straight to an
+    # anonymous git clone (no proxy, no sumdb), exactly as the go-tooling Dockerfile
+    # does; no token is needed because the repos are public.
+    env:
+      GOPRIVATE: github.com/gomatic
     steps:
       - uses: actions/checkout@v5
         with:
