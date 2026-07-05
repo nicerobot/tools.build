@@ -47,4 +47,4 @@ golang.org/x/vuln/cmd/govulncheck@v1.5.0
 gotest.tools/gotestsum@v1.13.0
 
 # Release
-github.com/goreleaser/goreleaser/v2@v2.16.0
+github.com/goreleaser/goreleaser/v2@v2.17.0
