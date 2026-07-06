@@ -45,6 +45,16 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends make gcc ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+# Every consuming CI action mounts the repo from the runner (a different uid than
+# the container's), so git flags the working tree as dubious ownership and Go's
+# buildvcs stamping (go build / staticcheck compiling a test binary) fails with
+# `error obtaining VCS status: exit status 128`. This surfaces only for repos whose
+# build stamps VCS, so it looks repo-specific while being a fleet-wide condition.
+# Mark all mounted repos safe SYSTEM-wide (writes /etc/gitconfig) so it holds for
+# every user AND every entrypoint — an action that overrides ENTRYPOINT (e.g.
+# ci/go's `check`) bypasses entrypoint.sh's per-workspace safe.directory.
+RUN git config --system --add safe.directory '*'
+
 # Precompiled tool binaries — /go/bin is already on PATH in the golang image.
 COPY --from=tools /tools/bin/ /go/bin/
 
