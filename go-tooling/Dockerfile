@@ -20,8 +20,14 @@ FROM golang:${GO_VERSION} AS tools
 # tools.txt and only just went public, so sum.golang.org has not indexed them yet
 # (and the proxy cached their prior private 404); a direct anonymous clone is
 # deterministic where the proxy/sumdb path is not.
+#
+# CGO is REQUIRED: yze's SQL analyzer (yze-sql-keywordcase → go-sql) links
+# pganalyze/pg_query_go, a cgo binding to libpg_query, so `go install yze` fails
+# under CGO_ENABLED=0 (undefined pg_query.Parse/Scan/…). The golang base image
+# ships gcc, and the final stage is the same base, so the cgo-linked binaries run
+# there; the other (pure-Go) tools are unaffected by enabling cgo.
 ENV GOBIN=/tools/bin \
-    CGO_ENABLED=0 \
+    CGO_ENABLED=1 \
     GOPRIVATE=github.com/gomatic
 WORKDIR /src
 
