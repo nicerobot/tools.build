@@ -13,7 +13,7 @@ A per-repo, per-capability **exemption marker** that both `distribute` and the s
 ## Model (decided)
 
 - **Granularity**: per-capability (not coarse whole-bundle). A repo lists only the specific capabilities it does not yet satisfy.
-- **Enforcement surfaces**: both — `distribute` (skip injecting an exempted *artifact*) and the shared gate (skip enforcing an exempted *check*) — plus an org-wide `verify`.
+- **Enforcement surfaces**: both — `distribute` (skip injecting an exempted _artifact_) and the shared gate (skip enforcing an exempted _check_) — plus an org-wide `verify`.
 - **Ratchet (hard)**: for every capability with a runnable check:
   - not exempt + check passes → ok
   - not exempt + check fails → **fail** (normal gate failure)
@@ -28,7 +28,7 @@ A per-repo, per-capability **exemption marker** that both `distribute` and the s
 
 - `artifact:*` — managed files distribute injects: `artifact:makefile`, `artifact:golangci`, `artifact:workflow:go`, `artifact:workflow:actions`, `artifact:workflow:docs` (extend as the bundle grows).
 - `gate:*` — mechanical checks the shared gate runs: `gate:lint`, `gate:staticcheck`, `gate:vulncheck`, `gate:coverage`, `gate:format`, `gate:vet`.
-- `convention:*` — higher-level conventions verified by `gomatic/analyzers/*/v1` (see Deferred). **Reserved now** so the schema and ratchet are forward-compatible; each is *inert* until its analyzer ships, at which point the ratchet begins applying to it.
+- `convention:*` — higher-level conventions verified by `gomatic/analyzers/*/v1` (see Deferred). **Reserved now** so the schema and ratchet are forward-compatible; each is _inert_ until its analyzer ships, at which point the ratchet begins applying to it.
 
 Each registry entry records its `kind`, a one-line `description`, and (for `gate:`/`convention:`) the `raw` make target that runs just that check (the staleness probe).
 
@@ -69,7 +69,7 @@ Backward compatible: **no `.standards.yaml` → byte-identical behavior to today
 ## Components & boundaries
 
 | Unit | Home | Responsibility |
-|---|---|---|
+| --- | --- | --- |
 | `standards/capabilities.yaml` | tools.build | canonical capability/convention registry (data) |
 | `.standards.yaml` | each repo | per-repo exemption ledger (data) |
 | `standards-run` wrapper + `standards-validate` | tools.build `build/go/Makefile` | gate ratchet + registry/reason validation |
