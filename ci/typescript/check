@@ -1,14 +1,28 @@
 #!/bin/bash
 # typescript — Biome lint + format check for JS/TS. Skips cleanly when a repo has
-# no JavaScript/TypeScript.
+# no JavaScript/TypeScript. Committed build artifacts and generated code are
+# excluded, mirroring the Go gate: minified bundles (*.min.js, *.bundle.js) and
+# files carrying a generated marker (ANTLR parsers, `Code generated`,
+# `@generated`) are regenerated from their source, never linted.
 set -o errexit
 set -o nounset
 set -o pipefail
 
-mapfile -t files < <(find . -type f \
+mapfile -t candidates < <(find . -type f \
   \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' \
   -o -name '*.mjs' -o -name '*.cjs' \) \
-  -not -path '*/vendor/*' -not -path '*/node_modules/*' -not -path '*/dist/*' | sort)
+  -not -path '*/vendor/*' -not -path '*/node_modules/*' -not -path '*/dist/*' \
+  -not -name '*.min.js' -not -name '*.bundle.js' | sort)
+
+files=()
+if [[ ${#candidates[@]} -gt 0 ]]; then
+  for f in "${candidates[@]}"; do
+    if head -n3 "${f}" | grep -qE 'Generated from .* by ANTLR|Code generated .* DO NOT EDIT|@generated'; then
+      continue
+    fi
+    files+=("${f}")
+  done
+fi
 
 if [[ ${#files[@]} -eq 0 ]]; then
   echo 'no javascript/typescript files — skipping'
@@ -16,4 +30,4 @@ if [[ ${#files[@]} -eq 0 ]]; then
 fi
 
 echo '== biome ci =='
-biome ci .
+biome ci "${files[@]}"
