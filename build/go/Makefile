@@ -170,6 +170,13 @@ COVERPKG        ?= $(subst $(space),$(comma),$(strip $(COVER_PKGS)))
 #   VET_PKGS = $(shell go list ./... | grep -v /src/grammar)
 VET_PKGS        ?= ./...
 
+# STATICCHECK_PKGS is the package set staticcheck runs over — default ./...,
+# narrowed in a repo's Makefile.local for the same reason and to the same set as
+# VET_PKGS: staticcheck still reports some checks (e.g. SA4006) inside COMMITTED
+# GENERATED trees despite their `Code generated` markers.
+#   STATICCHECK_PKGS = $(shell go list ./... | grep -v /src/grammar)
+STATICCHECK_PKGS ?= ./...
+
 # COVER_GATE names the target that `check`/`ci` run to enforce coverage. The
 # default is the flat aggregate `cover` gate above. A repo with a different
 # policy (e.g. a per-package ratchet with auditable per-function exceptions)
@@ -291,7 +298,7 @@ lint: ## Run the stickler lint suite (golangci-lint + yze; ratchet-aware; .stick
 
 .PHONY: staticcheck-raw
 staticcheck-raw:
-	$(STATICCHECK) ./...
+	$(STATICCHECK) $(STATICCHECK_PKGS)
 
 .PHONY: staticcheck
 staticcheck: ## Run staticcheck (ratchet-aware)
