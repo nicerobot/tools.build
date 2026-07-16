@@ -46,5 +46,9 @@ golang.org/x/vuln/cmd/govulncheck@v1.5.0
 # Tests & coverage
 gotest.tools/gotestsum@v1.13.0
 
+# YAML processing — the shared Go Makefile reads the .standards.yaml exemption
+# ledger and .goreleaser build ids with it; without it the ratchet cannot run.
+github.com/mikefarah/yq/v4@v4.53.3
+
 # Release
 github.com/goreleaser/goreleaser/v2@v2.17.0
