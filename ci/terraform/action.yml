@@ -2,4 +2,4 @@ name: "terraform gate"
 description: "terraform fmt -check + tflint gate."
 runs:
   using: "docker"
-  image: "Dockerfile"
+  image: "docker://ghcr.io/nicerobot/tools.build/ci/terraform:v2.4.0"
