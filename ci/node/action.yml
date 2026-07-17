@@ -1,5 +1,5 @@
-name: "python gate"
-description: "ruff lint + format-check gate."
+name: "node gate"
+description: "Node.js quality gate — npm ci + the consumer's make ci in the pinned Node image."
 inputs:
   dir:
     description: "Directory holding the repo when it is checked out as a workspace subdirectory."

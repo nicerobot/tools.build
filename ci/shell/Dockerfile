@@ -5,6 +5,10 @@
 # binaries are static, so they drop straight into the shellcheck base image.
 FROM koalaman/shellcheck-alpine:v0.10.0
 
+# GATE=1 marks "inside the gate image" so a consumer Makefile's `ci` target can
+# run the real steps here and re-exec into this image everywhere else.
+ENV GATE=1
+
 # shfmt is a single static Go binary; copy it from its published image.
 COPY --from=mvdan/shfmt:v3.10.0 /bin/shfmt /usr/local/bin/shfmt
 

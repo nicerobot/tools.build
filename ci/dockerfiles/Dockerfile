@@ -8,6 +8,10 @@
 # satisfying hadolint's own DL3002).
 FROM hadolint/hadolint:v2.12.0-alpine
 
+# GATE=1 marks "inside the gate image" so a consumer Makefile's `ci` target can
+# run the real steps here and re-exec into this image everywhere else.
+ENV GATE=1
+
 COPY hadolint.yaml /etc/hadolint.yaml
 COPY --chmod=0755 check /usr/local/bin/check
 

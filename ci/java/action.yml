@@ -1,5 +1,5 @@
-name: "python gate"
-description: "ruff lint + format-check gate."
+name: "java gate"
+description: "JVM quality gate — the consumer's make ci (Gradle via its pinned wrapper) in the pinned Temurin JDK image."
 inputs:
   dir:
     description: "Directory holding the repo when it is checked out as a workspace subdirectory."
