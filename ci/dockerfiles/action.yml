@@ -2,4 +2,4 @@ name: "dockerfiles gate"
 description: "hadolint gate for Dockerfiles."
 runs:
   using: "docker"
-  image: "docker://ghcr.io/nicerobot/tools.build/ci/dockerfiles:v2.4.0"
+  image: "docker://ghcr.io/nicerobot/tools.build/ci/dockerfiles:v2"

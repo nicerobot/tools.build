@@ -2,10 +2,9 @@
 
 ## [2.5.0](https://github.com/nicerobot/tools.build/compare/v2.4.0...v2.5.0) (2026-07-17)
 
-
 ### Features
 
-* **ci:** serve gates from the published pinned images; exempt CHANGELOG.md from the docs gate ([#5](https://github.com/nicerobot/tools.build/issues/5)) ([e90e572](https://github.com/nicerobot/tools.build/commit/e90e57229728777afc03e3fd1c5769df7b144400))
+- **ci:** serve gates from the published pinned images; exempt CHANGELOG.md from the docs gate ([#5](https://github.com/nicerobot/tools.build/issues/5)) ([e90e572](https://github.com/nicerobot/tools.build/commit/e90e57229728777afc03e3fd1c5769df7b144400))
 
 ## [2.4.0](https://github.com/nicerobot/tools.build/compare/v2.3.0...v2.4.0) (2026-07-17)
 

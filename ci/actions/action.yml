@@ -2,4 +2,4 @@ name: "actions gate"
 description: "actionlint gate for GitHub Actions workflows."
 runs:
   using: "docker"
-  image: "docker://ghcr.io/nicerobot/tools.build/ci/actions:v2.4.0"
+  image: "docker://ghcr.io/nicerobot/tools.build/ci/actions:v2"
