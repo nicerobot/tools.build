@@ -2,13 +2,11 @@
 
 ## [2.4.0](https://github.com/nicerobot/tools.build/compare/v2.3.0...v2.4.0) (2026-07-17)
 
-
 ### Features
 
 * **ci:** node, java, and cpp gate images; GATE=1 in every gate; multi-arch developer gates ([#4](https://github.com/nicerobot/tools.build/issues/4)) ([03ed7bb](https://github.com/nicerobot/tools.build/commit/03ed7bbd4f518c1b8d5c3289bd3958cff3e69daf))
 * **go:** scope `go vet` via VET_PKGS to exclude committed generated trees ([de66508](https://github.com/nicerobot/tools.build/commit/de66508c99e94b6fe471c5b504073789f2297aba))
 * **go:** scope staticcheck via STATICCHECK_PKGS to exclude committed generated trees (mirrors VET_PKGS) ([4f9bd6f](https://github.com/nicerobot/tools.build/commit/4f9bd6f4754e8399b148997497efadc3baeb67dc))
-
 
 ### Bug Fixes
 
