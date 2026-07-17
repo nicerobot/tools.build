@@ -5,6 +5,10 @@
 # `validate` miss. tflint is a static Go binary copied from its published image.
 FROM hashicorp/terraform:1.10
 
+# GATE=1 marks "inside the gate image" so a consumer Makefile's `ci` target can
+# run the real steps here and re-exec into this image everywhere else.
+ENV GATE=1
+
 COPY --from=ghcr.io/terraform-linters/tflint:v0.54.0 /usr/local/bin/tflint /usr/local/bin/tflint
 
 # bash for the check script (the terraform base is alpine/busybox).

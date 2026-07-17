@@ -1,0 +1,17 @@
+#!/bin/sh
+# java — JVM quality gate. Runs the consumer's `make ci` target (which drives
+# the repo's own pinned Gradle wrapper), so the gate and a local containerized
+# `make ci` are identical. Honors INPUT_DIR (the action's `dir` input) for
+# workflows that check out the repo as a workspace subdirectory. Skips cleanly
+# when a repo has no JVM build.
+set -eu
+
+cd "${INPUT_DIR:-.}"
+
+if [ ! -f gradlew ] && [ ! -f pom.xml ]; then
+  echo 'no gradlew or pom.xml — skipping'
+  exit 0
+fi
+
+echo '== make ci (java) =='
+exec make ci

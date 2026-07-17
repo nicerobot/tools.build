@@ -12,6 +12,10 @@
 #      diagrams never merge.
 FROM node:22-bookworm-slim
 
+# GATE=1 marks "inside the gate image" so a consumer Makefile's `ci` target can
+# run the real steps here and re-exec into this image everywhere else.
+ENV GATE=1
+
 ENV PUPPETEER_SKIP_DOWNLOAD=1 \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 

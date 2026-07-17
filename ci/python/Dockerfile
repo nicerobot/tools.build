@@ -7,6 +7,10 @@
 # fetches per the consumer's lock.
 FROM python:3.13-slim
 
+# GATE=1 marks "inside the gate image" so a consumer Makefile's `ci` target can
+# run the real steps here and re-exec into this image everywhere else.
+ENV GATE=1
+
 # make drives the shared targets; uv owns the Python toolchain + venv.
 RUN set -eux; \
     apt-get update; \

@@ -46,7 +46,10 @@ jobs:
           - { name: ci/shell, context: ci/shell }
           - { name: ci/actions, context: ci/actions }
           - { name: ci/dockerfiles, context: ci/dockerfiles }
-          - { name: ci/python, context: ci/python }
+          - { name: ci/python, context: ci/python, platforms: "linux/amd64,linux/arm64" }
+          - { name: ci/node, context: ci/node, platforms: "linux/amd64,linux/arm64" }
+          - { name: ci/java, context: ci/java, platforms: "linux/amd64,linux/arm64" }
+          - { name: ci/cpp, context: ci/cpp, platforms: "linux/amd64,linux/arm64" }
           - { name: ci/typescript, context: ci/typescript }
           - { name: ci/terraform, context: ci/terraform }
           - { name: ci/hugo, context: ci/hugo }
@@ -54,6 +57,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
+      - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -77,6 +81,10 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.image.context }}
+          # Gates consumed by local `make ci` on developer machines publish arm64
+          # alongside amd64 (matrix.platforms); the rest stay amd64-only until they
+          # need a local story — qemu-emulated builds are slow enough to matter.
+          platforms: ${{ matrix.image.platforms || 'linux/amd64' }}
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ steps.meta.outputs.tag }}

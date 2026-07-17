@@ -1,0 +1,22 @@
+#!/bin/sh
+# node — Node.js quality gate. Installs the consumer's locked dependencies with
+# `npm ci`, then runs the consumer's `make ci` target, so the gate and a local
+# containerized `make ci` are identical. Honors INPUT_DIR (the action's `dir`
+# input) for workflows that check out the repo as a workspace subdirectory.
+# Skips cleanly when a repo has no package.json.
+set -eu
+
+cd "${INPUT_DIR:-.}"
+
+if [ ! -f package.json ]; then
+  echo 'no package.json — skipping'
+  exit 0
+fi
+
+if [ -f package-lock.json ]; then
+  echo '== npm ci =='
+  npm ci
+fi
+
+echo '== make ci (node) =='
+exec make ci

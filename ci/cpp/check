@@ -1,0 +1,17 @@
+#!/bin/sh
+# cpp — C/C++ quality gate. Runs the consumer's `make ci` target (CMake
+# configure + build + ctest), so the gate and a local containerized `make ci`
+# are identical. Honors INPUT_DIR (the action's `dir` input) for workflows that
+# check out the repo as a workspace subdirectory. Skips cleanly when a repo has
+# no CMake build.
+set -eu
+
+cd "${INPUT_DIR:-.}"
+
+if [ ! -f CMakeLists.txt ]; then
+  echo 'no CMakeLists.txt — skipping'
+  exit 0
+fi
+
+echo '== make ci (cpp) =='
+exec make ci

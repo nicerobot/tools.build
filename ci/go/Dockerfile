@@ -11,6 +11,10 @@
 # source changes.
 FROM ghcr.io/nicerobot/tools.build/go-tooling:v2
 
+# GATE=1 marks "inside the gate image" so a consumer Makefile's `ci` target can
+# run the real steps here and re-exec into this image everywhere else.
+ENV GATE=1
+
 COPY --chmod=0755 check /usr/local/bin/check
 
 WORKDIR /work

@@ -2,8 +2,11 @@
 # python — uv-based quality gate. Runs the shared Makefile `ci` target (ruff
 # format + lint, ty type-check, pytest) from the distributed build/python
 # Makefile, so the gate and a local `make ci` are identical. Skips cleanly when a
-# repo has no Python.
+# repo has no Python. Honors INPUT_DIR (the action's `dir` input) for workflows
+# that check out the repo as a workspace subdirectory.
 set -eu
+
+cd "${INPUT_DIR:-.}"
 
 if [ -z "$(find . -name '*.py' -not -path '*/.venv/*' -not -path '*/vendor/*' -not -path '*/node_modules/*' -print -quit)" ]; then
   echo 'no python files — skipping'

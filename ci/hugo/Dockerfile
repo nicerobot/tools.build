@@ -6,6 +6,10 @@
 # Pages. The check script is POSIX sh, so the alpine base needs nothing added.
 FROM hugomods/hugo:exts-0.140.2
 
+# GATE=1 marks "inside the gate image" so a consumer Makefile's `ci` target can
+# run the real steps here and re-exec into this image everywhere else.
+ENV GATE=1
+
 COPY --chmod=0755 check /usr/local/bin/check
 
 WORKDIR /work
