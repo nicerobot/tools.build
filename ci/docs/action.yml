@@ -2,4 +2,4 @@ name: "docs gate"
 description: "Markdown lint (markdownlint) + Mermaid render gate."
 runs:
   using: "docker"
-  image: "docker://ghcr.io/nicerobot/tools.build/ci/docs:v2.4.0"
+  image: "docker://ghcr.io/nicerobot/tools.build/ci/docs:v2"

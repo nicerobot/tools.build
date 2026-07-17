@@ -2,4 +2,4 @@ name: "typescript gate"
 description: "Biome lint + format-check gate for JavaScript/TypeScript."
 runs:
   using: "docker"
-  image: "docker://ghcr.io/nicerobot/tools.build/ci/typescript:v2.4.0"
+  image: "docker://ghcr.io/nicerobot/tools.build/ci/typescript:v2"

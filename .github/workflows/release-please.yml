@@ -39,7 +39,7 @@ jobs:
     with:
       tag: ${{ needs.release-please.outputs.tag_name }}
     permissions:
-      contents: read
+      contents: write   # release.yml's major-tag job force-pushes the floating vMAJOR tag
       packages: write
       id-token: write
       attestations: write

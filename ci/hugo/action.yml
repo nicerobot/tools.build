@@ -2,4 +2,4 @@ name: "hugo gate"
 description: "Hugo build gate for GitHub Pages sites."
 runs:
   using: "docker"
-  image: "docker://ghcr.io/nicerobot/tools.build/ci/hugo:v2.4.0"
+  image: "docker://ghcr.io/nicerobot/tools.build/ci/hugo:v2"

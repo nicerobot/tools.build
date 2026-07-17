@@ -97,3 +97,25 @@ jobs:
           IMAGE: ghcr.io/${{ github.repository }}/${{ matrix.image.name }}
           DIGEST: ${{ steps.build.outputs.digest }}
         run: cosign sign --yes "${IMAGE}@${DIGEST}"
+
+  major-tag:
+    # Move the floating major git tag (v2.1.0 -> v2) to the release commit once
+    # every image is published, so `uses: …/ci/<lang>@vMAJOR` consumers advance
+    # atomically with the `:vMAJOR` image tags — no manual retag step. The
+    # GITHUB_TOKEN tag push cannot retrigger this workflow's own tag event.
+    name: move major tag
+    needs: images
+    if: github.repository == 'nicerobot/tools.build'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          major="${TAG%%.*}"
+          git fetch --depth 1 origin "refs/tags/${TAG}:refs/tags/${TAG}"
+          git tag -f "${major}" "$(git rev-list -n1 "refs/tags/${TAG}")"
+          git push -f origin "refs/tags/${major}"
