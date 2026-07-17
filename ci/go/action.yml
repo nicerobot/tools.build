@@ -2,4 +2,4 @@ name: "go gate"
 description: "Go quality gate (make ci): lint, staticcheck, vulncheck, 100%% coverage, race, cross-compile."
 runs:
   using: "docker"
-  image: "Dockerfile"
+  image: "docker://ghcr.io/nicerobot/tools.build/ci/go:v2.4.0"

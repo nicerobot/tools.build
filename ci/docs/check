@@ -12,7 +12,9 @@ readonly md_config=/etc/gomatic.markdownlint-cli2.jsonc
 readonly prettier_config=/etc/gomatic.prettierrc.json
 readonly puppeteer_config=/etc/puppeteer.json
 
-mapfile -t md_files < <(find . -name '*.md' \
+# CHANGELOG.md is release-please output — generated, so exempt from the gates
+# like every generated artifact.
+mapfile -t md_files < <(find . -name '*.md' -not -name 'CHANGELOG.md' \
   -not -path '*/vendor/*' -not -path '*/node_modules/*' | sort)
 
 if [[ ${#md_files[@]} -eq 0 ]]; then
