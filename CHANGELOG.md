@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.0](https://github.com/nicerobot/tools.build/compare/v2.5.0...v2.6.0) (2026-07-17)
+
+
+### Features
+
+* **release:** move the floating vMAJOR git tag automatically; gates track :vMAJOR images ([#7](https://github.com/nicerobot/tools.build/issues/7)) ([c115b7b](https://github.com/nicerobot/tools.build/commit/c115b7bebe7927c60c135d9f5ea7133f1e327ad0))
+
 ## [2.5.0](https://github.com/nicerobot/tools.build/compare/v2.4.0...v2.5.0) (2026-07-17)
 
 ### Features
