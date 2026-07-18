@@ -12,6 +12,7 @@ mapfile -t candidates < <(find . -type f \
   \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' \
   -o -name '*.mjs' -o -name '*.cjs' \) \
   -not -path '*/vendor/*' -not -path '*/node_modules/*' -not -path '*/dist/*' \
+  -not -path './public/*' \
   -not -name '*.min.js' -not -name '*.bundle.js' | sort)
 
 files=()
