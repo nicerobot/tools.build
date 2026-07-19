@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.1](https://github.com/nicerobot/tools.build/compare/v2.6.0...v2.6.1) (2026-07-19)
+
+
+### Bug Fixes
+
+* **ci:** typescript gate excludes the Hugo public/ output tree ([db73157](https://github.com/nicerobot/tools.build/commit/db73157a574923dd30eacf270d6c38d0110083ba))
+
 ## [2.6.0](https://github.com/nicerobot/tools.build/compare/v2.5.0...v2.6.0) (2026-07-17)
 
 
