@@ -107,3 +107,12 @@ capabilities:
     kind: convention
     description: a root-go.mod module carries exactly one class marker (cmd/<binary>/ or library.go, or an owner-granted root main.go)
     analyzer: true
+  # Keyed by the bare analyzer name, like classification: the internal-content
+  # analyzer flags spec(s)/doc(s) folders in any repo but the sanctioned homes
+  # (the owner's _projects hub and docs.* repos). A template FOR a _projects hub
+  # (template.org-_projects) is not itself named `.projects`, so it exempts this
+  # to carry the templated specs/ layout.
+  internal-content:
+    kind: convention
+    description: no spec(s)/doc(s) internal-content folder in a source repo (specs belong in <org>/_projects/specs/<repo>/, docs in docs.<repo>)
+    analyzer: true
