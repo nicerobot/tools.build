@@ -43,6 +43,9 @@ capabilities:
   artifact:workflow:release:
     kind: artifact
     description: goreleaser release workflow
+  artifact:docstyle:
+    kind: artifact
+    description: distribute-docs Hugo style unit (layouts/ + assets/); exempt a docs repo that supplies its own theme (e.g. a Hugo module)
 
   # ---- gates (mechanical checks the shared gate runs) -------------------------
   gate:lint:
