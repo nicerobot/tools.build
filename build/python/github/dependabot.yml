@@ -14,7 +14,14 @@ version: 2
 # suppressing that would leave the repo silently vulnerable.
 updates:
   - package-ecosystem: pip
-    directory: /
+    # "/" and "/*" mirror distribute's own detection rule, which earns a repo its
+    # primary type when the manifest sits at the root OR one level down. A repo
+    # whose manifest lives in a subdirectory (nicerobot.github.io keeps its go.mod
+    # in year/) would otherwise get a config pointing at a directory holding no
+    # manifest, and every update job would fail.
+    directories:
+      - "/"
+      - "/*"
     schedule:
       interval: weekly
       day: monday
