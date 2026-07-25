@@ -43,6 +43,9 @@ capabilities:
   artifact:workflow:release:
     kind: artifact
     description: goreleaser release workflow
+  artifact:dependabot:
+    kind: artifact
+    description: Dependabot version-update config (.github/dependabot.yml); per-ecosystem, majors ignored for version updates
   artifact:docstyle:
     kind: artifact
     description: distribute-docs Hugo style unit (layouts/ + assets/); exempt a docs repo that supplies its own theme (e.g. a Hugo module)
