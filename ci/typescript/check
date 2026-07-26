@@ -4,6 +4,12 @@
 # excluded, mirroring the Go gate: minified bundles (*.min.js, *.bundle.js) and
 # files carrying a generated marker (ANTLR parsers, `Code generated`,
 # `@generated`) are regenerated from their source, never linted.
+#
+# coverage/ is excluded for the same reason. istanbul writes a report bundling
+# its own sorter.js/prettify.js/block-navigation.js, which carry no generated
+# marker and trip a dozen rules apiece. CI never sees them — the directory is
+# gitignored and a fresh checkout omits it — so including them only breaks the
+# local run, and does so with ~50 findings that look like real debt.
 set -o errexit
 set -o nounset
 set -o pipefail
@@ -12,7 +18,7 @@ mapfile -t candidates < <(find . -type f \
   \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' \
   -o -name '*.mjs' -o -name '*.cjs' \) \
   -not -path '*/vendor/*' -not -path '*/node_modules/*' -not -path '*/dist/*' \
-  -not -path './public/*' \
+  -not -path './public/*' -not -path '*/coverage/*' \
   -not -name '*.min.js' -not -name '*.bundle.js' | sort)
 
 files=()
