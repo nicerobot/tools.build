@@ -23,4 +23,12 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
+      # GO_MODULE_TOKEN is only needed by a repo that depends on a PRIVATE
+      # first-party module: those are absent from proxy.golang.org, so Go fetches
+      # them straight from git and GITHUB_TOKEN cannot read them (it is scoped to
+      # this repository alone). An org that defines no such secret passes the
+      # empty string here, which the gate treats as "no private modules" — so
+      # this line is inert for every repo that does not need it.
       - uses: nicerobot/tools.build/ci/go@v2
+        with:
+          token: ${{ secrets.GO_MODULE_TOKEN }}

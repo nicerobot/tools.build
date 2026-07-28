@@ -1,20 +1,76 @@
 #!/bin/bash
-# ci — Go quality gate. Runs the shared build/go/Makefile `ci` target when the
+# go — Go quality gate. Runs the shared build/go/Makefile `ci` target when the
 # repo has first-party packages; otherwise just prints the pinned tool versions
 # (the case for a repo that ships no packages of its own). The quality tools are
 # baked into ${GOBIN} by the go-tooling base image, so no tool stanza or vendored
 # tooling is needed and the gate resolves every tool from ${GOBIN}.
+#
+# The package probe below distinguishes "this repo has no packages" from
+# "`go list` could not answer". Those are not the same, and conflating them makes
+# the gate fail OPEN: a repo whose modules cannot resolve reports success having
+# run nothing. That is exactly what happened to the repos depending on private
+# first-party modules — the gate was green for months while checking nothing.
 set -o errexit
 set -o nounset
 set -o pipefail
 
-pkgs="$(go list ./... 2>/dev/null | grep -v /vendor/ || true)"
+# --------------------------------------------------------------------------- #
+# Private first-party modules
+# --------------------------------------------------------------------------- #
+# A private module is absent from proxy.golang.org and from the checksum
+# database, so Go must fetch it straight from git — which needs a credential the
+# default GITHUB_TOKEN does not carry (it is scoped to the running repo alone).
+# The action's `token` input supplies one; without it, a repo with private
+# dependencies simply cannot build here, and the probe below says so rather than
+# passing silently.
+#
+# GOPRIVATE is set only when a token is present, and only for the running repo's
+# own owner. Scoping it that narrowly matters: GOPRIVATE also disables checksum
+# database verification for everything it matches, so applying it unconditionally
+# would stop the gate noticing a first-party module whose published hash changed.
+if [[ -n "${INPUT_TOKEN:-}" ]]; then
+  git config --global \
+    "url.https://x-access-token:${INPUT_TOKEN}@github.com/.insteadOf" \
+    "https://github.com/"
+  export GOPRIVATE="${INPUT_GOPRIVATE:-github.com/${GITHUB_REPOSITORY_OWNER:-*}/*}"
+fi
+
+# --------------------------------------------------------------------------- #
+# Package probe — fail closed
+# --------------------------------------------------------------------------- #
+probe_err="$(mktemp)"
+trap 'rm -f "${probe_err}"' EXIT
+
+if ! pkgs="$(go list ./... 2>"${probe_err}")"; then
+  cat "${probe_err}" >&2
+  cat >&2 <<'EOF'
+
+gate: `go list ./...` failed, so the package set is unknown.
+
+Refusing to report success: a gate that cannot enumerate the repo's packages has
+not checked anything. This is an error, never a skip.
+
+If the failure names a private module, the gate needs a credential that can read
+it. Pass one to the action:
+
+    - uses: nicerobot/tools.build/ci/go@v2
+      with:
+        token: ${{ secrets.GO_MODULE_TOKEN }}
+
+GITHUB_TOKEN is not sufficient — it only grants access to the repository running
+the workflow, not to other private repositories it depends on.
+EOF
+  exit 1
+fi
+
+pkgs="$(printf '%s\n' "${pkgs}" | grep -v /vendor/ || true)"
 if [[ -n "${pkgs}" ]]; then
   exec make ci
 fi
 
-# No first-party packages: print the pinned tool versions from ${GOBIN} as a smoke
-# test that the baked toolchain is present — WITHOUT the go.mod mutation that
-# `make tools` does (which must never touch a mounted working tree).
+# `go list` succeeded and matched nothing: the repo genuinely ships no packages.
+# Print the pinned tool versions from ${GOBIN} as a smoke test that the baked
+# toolchain is present — WITHOUT the go.mod mutation that `make tools` does
+# (which must never touch a mounted working tree).
 echo "no first-party packages — reporting the pinned tool versions from \${GOBIN}"
 exec make tools-version

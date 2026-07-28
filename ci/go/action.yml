@@ -1,5 +1,23 @@
 name: "go gate"
 description: "Go quality gate (make ci): lint, staticcheck, vulncheck, 100%% coverage, race, cross-compile."
+inputs:
+  token:
+    description: >-
+      Credential able to read the private first-party modules this repo depends
+      on. Needed only by such repos. GITHUB_TOKEN does not work: it grants access
+      to the running repository alone, never to other private repositories it
+      depends on. When set, the gate rewrites GitHub HTTPS remotes to use it and
+      scopes GOPRIVATE to the repository's owner.
+    required: false
+    default: ""
+  goprivate:
+    description: >-
+      Override the GOPRIVATE pattern. Defaults to the running repository's owner
+      (github.com/<owner>/*), and is consulted only when `token` is set. GOPRIVATE
+      also disables checksum-database verification for whatever it matches, so it
+      is deliberately kept as narrow as possible.
+    required: false
+    default: ""
 runs:
   using: "docker"
   image: "docker://ghcr.io/nicerobot/tools.build/ci/go:v2"
