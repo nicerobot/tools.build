@@ -14,30 +14,6 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-# --------------------------------------------------------------------------- #
-# Private first-party modules
-# --------------------------------------------------------------------------- #
-# A private module is absent from proxy.golang.org and from the checksum
-# database, so Go must fetch it straight from git — which needs a credential the
-# default GITHUB_TOKEN does not carry (it is scoped to the running repo alone).
-# The action's `token` input supplies one; without it, a repo with private
-# dependencies simply cannot build here, and the probe below says so rather than
-# passing silently.
-#
-# GOPRIVATE is set only when a token is present, and only for the running repo's
-# own owner. Scoping it that narrowly matters: GOPRIVATE also disables checksum
-# database verification for everything it matches, so applying it unconditionally
-# would stop the gate noticing a first-party module whose published hash changed.
-if [[ -n "${INPUT_TOKEN:-}" ]]; then
-  git config --global \
-    "url.https://x-access-token:${INPUT_TOKEN}@github.com/.insteadOf" \
-    "https://github.com/"
-  export GOPRIVATE="${INPUT_GOPRIVATE:-github.com/${GITHUB_REPOSITORY_OWNER:-*}/*}"
-fi
-
-# --------------------------------------------------------------------------- #
-# Package probe — fail closed
-# --------------------------------------------------------------------------- #
 probe_err="$(mktemp)"
 trap 'rm -f "${probe_err}"' EXIT
 
@@ -50,15 +26,24 @@ gate: `go list ./...` failed, so the package set is unknown.
 Refusing to report success: a gate that cannot enumerate the repo's packages has
 not checked anything. This is an error, never a skip.
 
-If the failure names a private module, the gate needs a credential that can read
-it. Pass one to the action:
+If the failure names a first-party module, that module is still private. The gate
+runs with no credentials by design — wiring private access into every consumer
+would spread one library's unfinished state across the whole fleet. A private
+dependency is a temporary state with exactly one exit:
 
-    - uses: nicerobot/tools.build/ci/go@v2
-      with:
-        token: ${{ secrets.GO_MODULE_TOKEN }}
+  1. Bring the library up to standard — immutable types, clean interfaces, full
+     test coverage, the gate green — and make it public.
+  2. Until then the consumer cannot be built anywhere but locally, so it must not
+     carry this workflow. Declare it in .standards.yaml:
 
-GITHUB_TOKEN is not sufficient — it only grants access to the repository running
-the workflow, not to other private repositories it depends on.
+         exempt:
+           artifact:workflow:go: "<dependency> is private until it is published"
+
+     and let `distribute` drop the workflow. Removing the exemption when the
+     library goes public is what brings the gate back.
+
+Never paper over this with a token: the repo would be gated on a secret rather
+than on the code being publishable.
 EOF
   exit 1
 fi
