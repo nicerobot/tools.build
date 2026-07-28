@@ -26,24 +26,31 @@ gate: `go list ./...` failed, so the package set is unknown.
 Refusing to report success: a gate that cannot enumerate the repo's packages has
 not checked anything. This is an error, never a skip.
 
-If the failure names a first-party module, that module is still private. The gate
-runs with no credentials by design — wiring private access into every consumer
-would spread one library's unfinished state across the whole fleet. A private
-dependency is a temporary state with exactly one exit:
+If the failure names a first-party module, that module is private. The gate runs
+with no credentials by design: wiring private access into every consumer spreads
+one library's access rules across the whole fleet, and gates the repo on a secret
+existing rather than on its code being sound.
 
-  1. Bring the library up to standard — immutable types, clean interfaces, full
-     test coverage, the gate green — and make it public.
-  2. Until then the consumer cannot be built anywhere but locally, so it must not
-     carry this workflow. Declare it in .standards.yaml:
+A module is private for one of two reasons, and they end differently.
 
-         exempt:
-           artifact:workflow:go: "<dependency> is private until it is published"
+  Private until it is good enough. The exit is to bring the library up to
+  standard — immutable types, clean interfaces, full coverage with the failure
+  paths asserted, the gate green — and publish it. The exemption below is
+  temporary and comes off when it does.
 
-     and let `distribute` drop the workflow. Removing the exemption when the
-     library goes public is what brings the gate back.
+  Private on purpose, because the interface itself is the intellectual property.
+  It is never published, so its consumers are never gated here. That is a
+  deliberate trade, not a defect: their quality bar is enforced by `make check`
+  run locally, and CI covers only what can be built without secrets.
 
-Never paper over this with a token: the repo would be gated on a secret rather
-than on the code being publishable.
+Either way this repo must not carry a workflow it cannot satisfy. Declare it in
+.standards.yaml and let `distribute` drop the workflow:
+
+    exempt:
+      artifact:workflow:go: "<module> is private; gated locally via make check"
+
+State which of the two cases applies in the reason, so a permanent exemption is
+never mistaken for a backlog item.
 EOF
   exit 1
 fi
