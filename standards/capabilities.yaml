@@ -67,6 +67,18 @@ capabilities:
     kind: gate
     description: 100% aggregate statement coverage
     raw: cover
+  # NOTE: there is deliberately no gate:nilaway. `make nilaway` is ADVISORY and
+  # absent from check/ci — its nil-slice false-positive rate makes it unfit to
+  # block, and an exemption written for a false positive is indistinguishable in
+  # this ledger from one written for a real gap. See the target's comment.
+  gate:deadcode:
+    kind: gate
+    description: no code unreachable from any entry point or test
+    raw: deadcode-raw
+  gate:tidy:
+    kind: gate
+    description: go.mod/go.sum are tidy (`go mod tidy -diff` clean) — no dependency in go.sum that nothing imports
+    raw: tidy-check-raw
 
   # ---- conventions (RESERVED — analyzers deferred to gomatic/analyzers/*/v1) ---
   convention:sentinel-errors:
