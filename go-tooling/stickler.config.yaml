@@ -57,3 +57,10 @@ soft:
   # but fixing one means deciding what the missing branch should DO — a design
   # question per site, not an edit. It gates again at zero.
   - exhaustive
+  #
+  # yze/cliopinion is softened on the same terms: 99 findings across 22
+  # repositories, most of them a domain Run whose variadic is a package-local
+  # `type argument = string` rather than the shared domain.Argument. Converting
+  # one means touching a package's public entry point, so it lands soft and
+  # gates again at zero.
+  - yze/cliopinion
