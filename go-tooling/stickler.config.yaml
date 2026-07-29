@@ -12,4 +12,24 @@
 #
 # golangci-lint is hard (gating) from day one; its per-repo deltas live under
 # `config: { golangci-lint: ... }` in the repo's .stickler.yaml.
-soft: []
+#
+# The one standing exception is a PROBE — an analyzer whose precision is bounded
+# by judgment rather than by syntax, and which therefore must never block a push.
+# A probe is soft EVERYWHERE, permanently and by design; that is what separates it
+# from the per-repo softening above, which is a temporary cleanup ratchet that
+# must shrink toward zero. A probe's findings are still printed on every run, so
+# they reach a reviewer without gating a build.
+soft:
+  # yze/invariant reports doc comments asserting a property (atomically, never,
+  # byte-identical, safe to copy) that no test names. Both halves are heuristic:
+  # the keyword set matches prose that describes rather than promises, and "named
+  # by a test" only approximates "verified by a test". It surfaces real unverified
+  # claims AND claims that are verified under a differently-named test, so a human
+  # or agent adjudicates each one. Gating on it would teach everyone to silence it.
+  - yze/invariant
+  # yze/filesize reports files over a line limit. It is soft because the fix is
+  # a real refactor — splitting a file along a seam that has to be chosen, not a
+  # mechanical edit — so gating on it would block unrelated work behind a design
+  # decision. The soft-baseline ratchet is what keeps it from being ignored: the
+  # count may fall, never grow.
+  - yze/filesize
