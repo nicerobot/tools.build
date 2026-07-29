@@ -50,3 +50,10 @@ soft:
   - yze/errtest
   - yze/errtested
   - yze/testfile
+  #
+  # exhaustive (golangci-lint) is softened on the same rollout terms: 86 findings
+  # across 21 repositories, each an enum discrimination that silently ignores a
+  # value. Every one is a real defect waiting for someone to add an enum member,
+  # but fixing one means deciding what the missing branch should DO — a design
+  # question per site, not an edit. It gates again at zero.
+  - exhaustive
