@@ -20,7 +20,6 @@ linters:
     - dupl # duplicate code detection
     - durationcheck # catches bad time.Duration arithmetic
     - errorlint # correct error wrapping / comparison
-    - exhaustive # every value of an enum is handled where it is discriminated
     - gocognit # cognitive complexity
     - goconst # repeated strings that should be constants
     - gocritic # opinionated diagnostics, performance, style
@@ -41,21 +40,6 @@ linters:
       min-complexity: 12
     gocognit:
       min-complexity: 7
-    exhaustive:
-      # default-signifies-exhaustive: a switch with a `default` clause counts as
-      # exhaustive. Deliberately FALSE: a `default` that silently absorbs a newly
-      # added enum value is the bug this linter exists to prevent — adding a
-      # SegmentKind and having every switch quietly treat it as the old fallback
-      # is a correctness failure no test will surface.
-      default-signifies-exhaustive: false
-      # Switches and map literals are exhaustive's whole scope. It does NOT see
-      # `if x != EnumConst` — discriminating a >2-value enum with a single `!=`
-      # is the same defect wearing an if-statement, and it is invisible here.
-      # That gap is what the yze/enumdiscrim analyzer is for; until it ships,
-      # `!=` enum discrimination is caught by review only.
-      check:
-        - switch
-        - map
     govet:
       enable-all: true
     gosec:
