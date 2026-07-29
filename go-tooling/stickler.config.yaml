@@ -33,3 +33,20 @@ soft:
   # decision. The soft-baseline ratchet is what keeps it from being ignored: the
   # count may fall, never grow.
   - yze/filesize
+  #
+  # ---- ROLLOUT SOFTENING — these three are HARD rules, temporarily softened ----
+  #
+  # Unlike the two probes above, these gate by right and must return to hard the
+  # moment the fleet reaches zero. They are listed here only because they were
+  # STRUCTURALLY INERT until 2026-07-28: the suite driver loaded packages without
+  # test files, so every analyzer that inspects _test.go could never report
+  # anything. Fixing that activated them for the first time and would have turned
+  # 68 previously-green repositories red in a single toolchain bump.
+  #
+  # Landing them soft with a committed per-rule baseline means the findings are
+  # visible on every run and cannot grow, while the backlog is worked down
+  # deliberately. Each is promoted back to hard — by deleting its line here —
+  # once its baseline reaches zero fleet-wide. Do not let these become permanent.
+  - yze/errtest
+  - yze/errtested
+  - yze/testfile
