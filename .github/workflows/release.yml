@@ -30,7 +30,12 @@ permissions:
   attestations: write
 
 jobs:
-  images:
+  # Images other images build FROM must publish BEFORE their dependants, or a
+  # dependant resolves its base from the PREVIOUS release. ci/go is
+  # `FROM ghcr.io/nicerobot/tools.build/go-tooling:vMAJOR`, and in a single
+  # parallel matrix it finished five minutes before that base was pushed —
+  # shipping a ci/go whose toolchain was a release behind, silently.
+  base-images:
     name: publish ${{ matrix.image.name }}
     if: github.repository == 'nicerobot/tools.build'
     runs-on: ubuntu-latest
@@ -39,7 +44,65 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          - { name: go-tooling, context: go-tooling }
+          # platforms is stated rather than left to the `|| 'linux/amd64'`
+          # fallback: this matrix has one entry, so the property must exist on
+          # the inferred type for the expression below to typecheck.
+          - { name: go-tooling, context: go-tooling, platforms: "linux/amd64" }
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: sigstore/cosign-installer@v3
+      - id: meta
+        # Derive the major alias from the SemVer tag (v2.1.0 -> v2; a bare v2 maps
+        # to itself) so consumers pinning :vMAJOR always get the latest of that
+        # major — the uniform container-versioning scheme: :vX.Y.Z, :vX, :latest.
+        # TAG is the workflow_call input when release-please.yml invokes this
+        # workflow directly (its own tag push can't retrigger this workflow's
+        # `on: push: tags` event), else the pushed tag ref itself.
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "major=${TAG%%.*}" >> "$GITHUB_OUTPUT"
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.image.context }}
+          # Gates consumed by local `make ci` on developer machines publish arm64
+          # alongside amd64 (matrix.platforms); the rest stay amd64-only until they
+          # need a local story — qemu-emulated builds are slow enough to matter.
+          platforms: ${{ matrix.image.platforms || 'linux/amd64' }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ steps.meta.outputs.tag }}
+            ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ steps.meta.outputs.major }}
+            ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:latest
+          provenance: true
+          sbom: true
+      - name: cosign sign (keyless)
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}/${{ matrix.image.name }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: cosign sign --yes "${IMAGE}@${DIGEST}"
+
+  images:
+    name: publish ${{ matrix.image.name }}
+    needs: base-images
+    if: github.repository == 'nicerobot/tools.build'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
           - { name: runtime, context: runtime }
           - { name: ci/go, context: ci/go }
           - { name: ci/docs, context: ci/docs }
@@ -104,7 +167,7 @@ jobs:
     # atomically with the `:vMAJOR` image tags — no manual retag step. The
     # GITHUB_TOKEN tag push cannot retrigger this workflow's own tag event.
     name: move major tag
-    needs: images
+    needs: [base-images, images]
     if: github.repository == 'nicerobot/tools.build'
     runs-on: ubuntu-latest
     timeout-minutes: 5
