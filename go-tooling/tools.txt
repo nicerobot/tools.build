@@ -15,8 +15,8 @@
 # Blank lines and lines beginning with `#` are ignored.
 
 # Formatting & imports
-mvdan.cc/gofumpt@v0.10.0
-golang.org/x/tools/cmd/goimports@v0.47.0
+mvdan.cc/gofumpt@v0.11.0
+golang.org/x/tools/cmd/goimports@v0.48.0
 github.com/daixiang0/gci@v0.14.0
 github.com/segmentio/golines@v0.13.0
 
@@ -26,22 +26,22 @@ honnef.co/go/tools/cmd/staticcheck@v0.7.0
 github.com/kisielk/errcheck@v1.20.0
 github.com/gordonklaus/ineffassign@v0.2.0
 github.com/client9/misspell/cmd/misspell@v0.3.4
-golang.org/x/tools/cmd/deadcode@v0.47.0
+golang.org/x/tools/cmd/deadcode@v0.48.0
 github.com/mgechev/revive@v1.15.0
 github.com/mibk/dupl@v1.1.0
-go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260625224722-136c083a9b77
+go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260730225925-3e5f45c73e85
 
 # Lint runner & analyzers (gomatic)
-github.com/gomatic/stickler/cmd/stickler@v0.8.6
-github.com/gomatic/yze/cmd/yze@v0.29.1
+github.com/gomatic/stickler/cmd/stickler@v0.8.8
+github.com/gomatic/yze/cmd/yze@v0.29.2
 
 # Complexity
 github.com/fzipp/gocyclo/cmd/gocyclo@v0.6.0
 github.com/uudashr/gocognit/cmd/gocognit@v1.2.1
 
 # Security & vulnerabilities
-github.com/securego/gosec/v2/cmd/gosec@v2.27.1
-golang.org/x/vuln/cmd/govulncheck@v1.5.0
+github.com/securego/gosec/v2/cmd/gosec@v2.28.0
+golang.org/x/vuln/cmd/govulncheck@v1.6.0
 
 # Tests & coverage
 gotest.tools/gotestsum@v1.13.0
@@ -51,4 +51,4 @@ gotest.tools/gotestsum@v1.13.0
 github.com/mikefarah/yq/v4@v4.53.3
 
 # Release
-github.com/goreleaser/goreleaser/v2@v2.17.0
+github.com/goreleaser/goreleaser/v2@v2.17.1

@@ -13,6 +13,13 @@ on:
     branches: [main]
     paths:
       - 'go-tooling/tools.txt'
+      # A dependency floor or an exemption changes what this scan concludes, so
+      # both retrigger it: an exemption that lands with no scan behind it is
+      # precisely the unverified suppression it must never become.
+      - 'go-tooling/security-pins.txt'
+      - 'go-tooling/security-exemptions.txt'
+      - 'go-tooling/install-tools.sh'
+      - 'go-tooling/tools-lib.sh'
       - 'scripts/go-tools-vulncheck.sh'
       - '.github/workflows/vulncheck.yml'
 

@@ -1,0 +1,22 @@
+# security-exemptions.txt — reviewed, per-finding vulncheck exemptions.
+#
+# The LAST resort, for a finding with no fix anywhere: not in a newer tool
+# release, not in a newer dependency (see security-pins.txt, which is always the
+# preferred answer). An exemption is a written, dated decision — never a way to
+# quiet a finding nobody looked at.
+#
+# It is deliberately narrow: it suppresses ONE vulnerability id in ONE binary.
+# Anything else that binary reports still fails the gate, and an entry that stops
+# matching (the tool fixed it, or was dropped) is reported as STALE and ALSO
+# fails — so this file cannot rot into a blanket allowlist.
+#
+# Format, one per line:  <binary><space><GO-id><space><reason ...>
+# Blank lines and lines beginning with `#` are ignored.
+
+# Reviewed 2026-08-01. golang.org/x/crypto/openpgp has no fixed version and will
+# never have one: the advisory is that the package itself is unmaintained and
+# unsafe by design, and upstream deprecated it rather than patching. goreleaser
+# reaches it from its artifact-signing path. Nothing to upgrade to — the only
+# real remedies are goreleaser migrating off openpgp, or dropping goreleaser.
+# Re-evaluate when goreleaser cuts a release that no longer links openpgp.
+goreleaser GO-2026-5932 x/crypto/openpgp is unmaintained upstream; no fixed version exists

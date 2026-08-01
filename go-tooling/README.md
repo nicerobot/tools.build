@@ -12,6 +12,13 @@ ghcr.io/nicerobot/tools.build/go-tooling:v2
 
 Every tool is pinned in a single manifest, [`tools.txt`](tools.txt) (one `importpath@version` per line), and compiled into the image with `go install path@version` — the same [`install-tools.sh`](install-tools.sh) a developer runs locally, so the image and `~/go/bin` hold byte-identical versions. They live on `${PATH}` (`/go/bin`).
 
+Two sidecars keep the CVE gate honest, because a tool released against a vulnerable transitive dependency cannot be fixed by picking a different tool version — only its author can bump it:
+
+- [`security-pins.txt`](security-pins.txt) records per-tool dependency **floors**. Such a tool is built at its pinned version inside a throwaway module that requires the fixed dependency, so the CVE is genuinely gone rather than suppressed — `make vulncheck` still scans the binary and must report it clean. Delete the entry once the tool's own release picks the fix up.
+- [`security-exemptions.txt`](security-exemptions.txt) is the last resort, for a finding with no fix anywhere. It suppresses exactly one vulnerability id in one binary, with a written reason; anything else that binary reports still fails, and an entry that stops matching fails as `STALE` — so it cannot decay into a blanket allowlist.
+
+`make verify` holds both install paths to `tools.txt`, and `make vulncheck` is the proof: it must exit zero with every finding either absent or explicitly exempt.
+
 | Category | Tools |
 | --- | --- |
 | Format | `gofumpt`, `goimports`, `gci`, `golines` (line length) |

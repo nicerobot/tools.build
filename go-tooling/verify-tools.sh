@@ -23,10 +23,22 @@ gobin="$(go env GOBIN)"
 [[ -n "${gobin}" ]] || gobin="${HOME}/go/bin"
 readonly gobin
 
-# installed_version prints the binary's embedded main-module version, or "" when
-# the binary is absent or carries no module metadata.
+# installed_version prints the version of the module the binary's main package
+# came from, or "" when the binary is absent or carries no module metadata.
+#
+# Normally that is the `mod` line: `go install path@version` records the tool's
+# own module as the main module. A tool built through a security-pins.txt
+# throwaway module instead records `toolbuild (devel)` there, so its real version
+# is on the `dep` line for the module owning the main package — the
+# longest-matching prefix of the `path` line. Reading both keeps ONE verification
+# rule covering both install paths, so a patched tool is still held to tools.txt.
 installed_version() {
-  go version -m "$1" 2>/dev/null | awk '$1 == "mod" { print $3; exit }'
+  go version -m "$1" 2>/dev/null | awk '
+    $1 == "path" { pkg = $2 }
+    $1 == "mod"  { main = $3 }
+    $1 == "dep" && index(pkg, $2) == 1 && length($2) > length(best) { best = $2; fallback = $3 }
+    END { print (main != "" && main != "(devel)") ? main : fallback }
+  '
 }
 
 drift=0

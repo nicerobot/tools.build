@@ -33,7 +33,11 @@ WORKDIR /src
 
 # Install the pinned tool set from the manifest, then assert it matches — the
 # identical scripts and manifest used locally, so CI and ~/go/bin never diverge.
-COPY tools.txt tools-lib.sh install-tools.sh verify-tools.sh ./
+# security-pins.txt travels with the manifest: install-tools.sh treats a missing
+# sidecar as "no pins", so omitting it here would silently build the image's
+# tools UNPATCHED while local builds stayed patched — the divergence this whole
+# manifest exists to prevent.
+COPY tools.txt tools-lib.sh security-pins.txt install-tools.sh verify-tools.sh ./
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     chmod +x ./install-tools.sh ./verify-tools.sh \

@@ -1,0 +1,29 @@
+# security-pins.txt — build-time dependency floors for the pinned tool set.
+#
+# A tool released against a vulnerable transitive dependency cannot be fixed by
+# choosing a different tool version: only the tool's author can bump it. Rather
+# than leave `make vulncheck` permanently red (a gate that is ignored is a gate
+# that lies), a tool listed here is built in a throwaway module that REQUIRES the
+# fixed dependency version, at the exact tool version tools.txt pins. Same tool,
+# same release, patched dependency — no suppression, and govulncheck proves it.
+#
+# Format, one per line:  <tool import path><space><module@version>
+# A tool may carry several floors (repeat the import path). The import path must
+# match a tools.txt entry verbatim or the pin is dead weight and `make verify`
+# will not notice; keep them in sync when a tool is renamed or removed.
+#
+# Tools NOT listed here are installed with plain `go install path@version`.
+#
+# REMOVE an entry once the tool's own release picks the fix up — the floor is
+# then redundant, and dropping it restores the simpler install path. Verify with
+# `make vulncheck` after removing: it must still report no vulnerabilities.
+# Blank lines and lines beginning with `#` are ignored.
+
+# GO-2026-6061 (google.golang.org/grpc, fixed in v1.82.1): gosec v2.28.0 ships
+# against v1.82.0.
+github.com/securego/gosec/v2/cmd/gosec google.golang.org/grpc@v1.82.1
+
+# GO-2026-5970 (golang.org/x/text, fixed in v0.39.0): gotestsum v1.13.0 ships
+# against v0.17.0, yq v4.53.3 against v0.37.0.
+gotest.tools/gotestsum golang.org/x/text@v0.39.0
+github.com/mikefarah/yq/v4 golang.org/x/text@v0.39.0
