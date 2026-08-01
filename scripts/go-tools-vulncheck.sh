@@ -58,6 +58,15 @@ scan_tool() {
   echo "${report}"
   reported="$(grep -oE 'GO-[0-9]{4}-[0-9]+' <<<"${report}" | sort -u)"
 
+  # A non-zero exit with no findings is govulncheck itself failing (unreadable
+  # binary, unsupported format, network trouble reaching the vuln DB). Falling
+  # through would reconcile an empty finding set against an empty exemption set
+  # and report success — a scan that never ran, recorded as a clean scan.
+  if [[ -z "${reported}" ]]; then
+    echo "ERROR: ${name} govulncheck exited non-zero without reporting any vulnerability"
+    return 1
+  fi
+
   for id in ${reported}; do
     if grep -qxF "${id}" <<<"${exempt_ids}"; then
       echo "EXEMPT: ${name} ${id} — $(exempt_reason "${name}" "${id}")"
