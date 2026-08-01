@@ -1,5 +1,42 @@
 # Changelog
 
+## [3.0.0](https://github.com/nicerobot/tools.build/compare/v2.6.1...v3.0.0) (2026-08-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* **ci/go:** repos whose modules cannot resolve in CI now fail instead of silently passing. They need GO_MODULE_TOKEN defined in their org, or the private dependency removed. This surfaces existing breakage; it does not introduce it.
+
+### Features
+
+* **bundle:** hugo-module bundle carrying a github-actions Dependabot config ([acb8557](https://github.com/nicerobot/tools.build/commit/acb85571d0285b8e7fe10cdb5a945ea89bfc2ef8))
+* **bundle:** managed Dependabot version-update config per ecosystem ([43f5828](https://github.com/nicerobot/tools.build/commit/43f5828674c092e3a802175ca9992e574685d91f))
+* **bundle:** publish the tag's artifacts instead of minting a version nothing builds ([43872ca](https://github.com/nicerobot/tools.build/commit/43872ca6fd5730509c895d4c57de528143e456b6))
+* **gate:** cross-compile libraries too, so one cannot pass while consumers cannot build it ([db8ba08](https://github.com/nicerobot/tools.build/commit/db8ba08eca68e74ef3532400866aa634f94fc606))
+* **go-gate:** add deadcode + tidy + exhaustive gates, shuffled/repeated tests ([5f9eb47](https://github.com/nicerobot/tools.build/commit/5f9eb47230b1eed2d576efc51343f5675c9f7f0b))
+* **go-gate:** land exhaustive, measured and soft ([6d67bf1](https://github.com/nicerobot/tools.build/commit/6d67bf19bca8a38277d5cf1c064f1b9a2230a425))
+* **tooling:** adopt the suite that can see test files ([bad82be](https://github.com/nicerobot/tools.build/commit/bad82be0e25cc69d05ab4436c24361ffcb5de9e3))
+* **tooling:** pin stickler v0.8.6 — the analyzers: block reaches yze ([28eaec9](https://github.com/nicerobot/tools.build/commit/28eaec9e322fcb14a0b298a885f438072b65014c))
+* **tooling:** pin yze v0.29.0, carrying cliopinion ([2584321](https://github.com/nicerobot/tools.build/commit/25843211673fa665ad94dde7cda09a32e8aa6bd2))
+* **tooling:** pin yze v0.29.1 — errtested and invariant see external tests ([4af38b0](https://github.com/nicerobot/tools.build/commit/4af38b001e571aed18429940259777652a62e8fc))
+
+
+### Bug Fixes
+
+* **bundle:** point dependabot at "/" and "/*" so subdirectory manifests are found ([f313e06](https://github.com/nicerobot/tools.build/commit/f313e0646df8267a17fbb0564aec6965e305ccf3))
+* **bundle:** probe for the goreleaser config in a step, not a job-level if ([1fd0734](https://github.com/nicerobot/tools.build/commit/1fd07347aafd4da07cfa8d517dbb9576c78b7efc))
+* **ci/go:** fail closed when go list cannot enumerate packages ([8d14100](https://github.com/nicerobot/tools.build/commit/8d14100fa21fff1481e3f13478983d5af21baaec))
+* **gate:** exclude coverage/ from the TypeScript check ([7fecaf5](https://github.com/nicerobot/tools.build/commit/7fecaf541aef996af361296657e7bb38440cfdeb))
+* **go-gate:** scope deadcode to this repo's own reachable code ([adfd48c](https://github.com/nicerobot/tools.build/commit/adfd48c6dfbbb3592de7b65e425a51b60d891a3d))
+* **release:** an empty goreleaser config means nothing to publish ([079a6f9](https://github.com/nicerobot/tools.build/commit/079a6f90e345c6f52d3fe4f4f5dfaf06103526e2))
+* **standards:** register the internal-content analyzer capability ([2eb42a1](https://github.com/nicerobot/tools.build/commit/2eb42a1a0e2a020b1da91c6c1fce08ad3c6ef8cf))
+* the target fails on the break and passes on the fix. ([db8ba08](https://github.com/nicerobot/tools.build/commit/db8ba08eca68e74ef3532400866aa634f94fc606))
+
+
+### Reverts
+
+* **golangci:** hold exhaustive back until its impact is measured ([1fbcd2a](https://github.com/nicerobot/tools.build/commit/1fbcd2a2b16844637ecaa811c235ca244d61ea7a))
+
 ## [2.6.1](https://github.com/nicerobot/tools.build/compare/v2.6.0...v2.6.1) (2026-07-19)
 
 
