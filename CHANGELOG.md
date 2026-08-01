@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.9.0](https://github.com/nicerobot/tools.build/compare/v2.8.0...v2.9.0) (2026-08-01)
+
+
+### Bug Fixes
+
+* **go-tooling:** make the toolchain CVE gate honest and green ([a22b458](https://github.com/nicerobot/tools.build/commit/a22b458de2a5bc55b16f65e25951c16228b3c00d))
+* **vulncheck:** fail when govulncheck itself fails to scan ([4e0ec54](https://github.com/nicerobot/tools.build/commit/4e0ec541f8bfeae6e54d23a7a727a3db28d4f4f8))
+
 ## [2.8.0](https://github.com/nicerobot/tools.build/compare/v2.7.0...v2.8.0) (2026-08-01)
 
 
