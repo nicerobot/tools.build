@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.8.0](https://github.com/nicerobot/tools.build/compare/v2.7.0...v2.8.0) (2026-08-01)
+
+
+### Bug Fixes
+
+* **release:** force the tag refspec so a manually cut tag can move its major alias ([89e9aaf](https://github.com/nicerobot/tools.build/commit/89e9aaf2dc2ad1d32d1fa52b9952c5b2bda61cde))
+* **release:** publish base images before the images that build FROM them ([4f6e7fa](https://github.com/nicerobot/tools.build/commit/4f6e7fac56410754b669c5dac1172adf089ea78b))
+
 ## [2.7.0](https://github.com/nicerobot/tools.build/compare/v2.6.1...v2.7.0) (2026-08-01)
 
 
