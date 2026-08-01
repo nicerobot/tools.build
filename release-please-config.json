@@ -3,5 +3,6 @@
   "release-type": "simple",
   "packages": {
     ".": {}
-  }
+  },
+  "versioning": "always-bump-minor"
 }
