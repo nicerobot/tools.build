@@ -116,6 +116,11 @@ jobs:
           TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           major="${TAG%%.*}"
-          git fetch --depth 1 origin "refs/tags/${TAG}:refs/tags/${TAG}"
+          # Force the refspec: on the `on: push: tags` path (a manual
+          # `git tag && git push`) the checkout already holds ${TAG}, and a
+          # non-forced fetch of a ref that exists is rejected with "would
+          # clobber existing tag" — which failed this job for every manually
+          # cut tag while the release-please path, checking out main, passed.
+          git fetch --depth 1 --force origin "+refs/tags/${TAG}:refs/tags/${TAG}"
           git tag -f "${major}" "$(git rev-list -n1 "refs/tags/${TAG}")"
           git push -f origin "refs/tags/${major}"
