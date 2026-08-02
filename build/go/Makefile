@@ -626,14 +626,23 @@ docker-buildx: build-all ## Build + push a multi-arch image manifest (needs buil
 
 ##@ Utilities
 
+# FMT_FILES is the Go source the formatter sees: the whole tree MINUS the
+# directories and files the Go toolchain itself ignores — those whose path has
+# a segment beginning with `_` or `.` (go build/vet/list/mod-tidy all skip
+# them). Formatting must match the compiler: a `_legacy/` port-reference tree,
+# kept verbatim and never built (per its own README), otherwise fails fmt-check
+# over code that is not part of the module. A repo with no such directory sees
+# exactly the whole tree, so its behaviour is unchanged.
+FMT_FILES = $(shell find . -name '*.go' -not -path '*/_*' -not -path '*/.*')
+
 .PHONY: fmt
 fmt: ## Format code (golines then gofumpt)
-	$(GOLINES) -m $(GOLINES_MAX) -w .
-	$(GOFUMPT) -l -w .
+	@[ -z "$(FMT_FILES)" ] || $(GOLINES) -m $(GOLINES_MAX) -w $(FMT_FILES)
+	@[ -z "$(FMT_FILES)" ] || $(GOFUMPT) -l -w $(FMT_FILES)
 
 .PHONY: fmt-check
 fmt-check: ## Fail if any line exceeds GOLINES_MAX (gofumpt/imports are enforced by lint)
-	@out="$$($(GOLINES) -m $(GOLINES_MAX) -l .)"; \
+	@out="$$([ -z "$(FMT_FILES)" ] || $(GOLINES) -m $(GOLINES_MAX) -l $(FMT_FILES))"; \
 	if [ -n "$${out}" ]; then echo "lines exceed $(GOLINES_MAX) cols (run 'make fmt'):"; echo "$${out}"; exit 1; fi
 
 .PHONY: generate
