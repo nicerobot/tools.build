@@ -79,3 +79,18 @@ soft:
   # analyzer could not see may now report. Soft with committed baselines,
   # gating again at zero.
   - stickler/clilayout
+  #
+  # yze/enumdiscrim is a PERMANENT PROBE, like yze/invariant: `if x !=
+  # EnumConst` over a >2-member group is the defect exhaustive cannot see —
+  # but a deliberate fast-path split of a many-way domain is legitimate, and
+  # only the author knows which reading is intended. 31 findings fleet-wide at
+  # first contact; a human or agent adjudicates each, the ratchet keeps the
+  # count from growing.
+  - yze/enumdiscrim
+  #
+  # yze/fuzzreq is softened on rollout terms: the fleet had ZERO fuzz targets
+  # at first contact while 16 exported parser surfaces consume bare untrusted
+  # input. Each finding is real work (write a fuzz target that asserts a
+  # property — yze/fuzzassert, which is HARD, keeps those targets honest), so
+  # it lands soft with per-repo baselines and gates again at zero.
+  - yze/fuzzreq
