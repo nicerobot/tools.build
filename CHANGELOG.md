@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.0](https://github.com/nicerobot/tools.build/compare/v2.9.0...v2.10.0) (2026-08-02)
+
+
+### Features
+
+* yze v0.30.0 + stickler v0.9.0 — the CLI family at every depth ([6907a98](https://github.com/nicerobot/tools.build/commit/6907a986bd8af06211b71d596326ca3512858cee))
+
 ## [2.9.0](https://github.com/nicerobot/tools.build/compare/v2.8.0...v2.9.0) (2026-08-01)
 
 
