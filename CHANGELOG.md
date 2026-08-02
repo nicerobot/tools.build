@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.11.0](https://github.com/nicerobot/tools.build/compare/v2.10.0...v2.11.0) (2026-08-02)
+
+
+### Features
+
+* stickler v0.10.0 + yze v0.31.0 — binaries gate, fuzz pair, enumdiscrim, errtext ([3efa976](https://github.com/nicerobot/tools.build/commit/3efa9765b746de20bd9d641d1853a207095bfcd0))
+
 ## [2.10.0](https://github.com/nicerobot/tools.build/compare/v2.9.0...v2.10.0) (2026-08-02)
 
 
