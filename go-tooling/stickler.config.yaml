@@ -58,9 +58,24 @@ soft:
   # question per site, not an edit. It gates again at zero.
   - exhaustive
   #
-  # yze/cliopinion is softened on the same terms: 99 findings across 22
-  # repositories, most of them a domain Run whose variadic is a package-local
-  # `type argument = string` rather than the shared domain.Argument. Converting
-  # one means touching a package's public entry point, so it lands soft and
-  # gates again at zero.
-  - yze/cliopinion
+  # yze/clidomain (formerly yze/cliopinion) is softened on the same terms: 99
+  # findings across 22 repositories at the old depth-1 scope, most of them a
+  # domain Run whose variadic is a package-local `type argument = string`
+  # rather than the shared domain.Argument — and the analyzer now reaches
+  # nested verbs, which may surface more. Converting one means touching a
+  # package's public entry point, so it stays soft and gates again at zero.
+  - yze/clidomain
+  #
+  # yze/cliflags is NEW (2026-08-01, the kilroy correction): nothing previously
+  # read a flag literal at all, so its rules — env Sources on every flag, Value
+  # defaults, kebab-case names, no Required, well-known externals unprefixed —
+  # light up findings fleet-wide on first contact. It lands soft with per-repo
+  # committed baselines, exactly as errtest/errtested/testfile did, and gates
+  # again at zero.
+  - yze/cliflags
+  #
+  # stickler/clilayout is NEW on the same terms: it replaces the depth-1
+  # yze/layout with whole-repo correspondence at every depth, so trees the old
+  # analyzer could not see may now report. Soft with committed baselines,
+  # gating again at zero.
+  - stickler/clilayout
