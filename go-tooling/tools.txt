@@ -32,7 +32,7 @@ github.com/mibk/dupl@v1.1.0
 go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260730225925-3e5f45c73e85
 
 # Lint runner & analyzers (gomatic)
-github.com/gomatic/stickler/cmd/stickler@v0.10.0
+github.com/gomatic/stickler/cmd/stickler@v0.10.3
 github.com/gomatic/yze/cmd/yze@v0.31.4
 
 # Complexity
