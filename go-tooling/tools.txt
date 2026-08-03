@@ -46,6 +46,10 @@ golang.org/x/vuln/cmd/govulncheck@v1.6.0
 # Tests & coverage
 gotest.tools/gotestsum@v1.13.0
 
+# Mutation testing — measures test ADEQUACY, which coverage cannot. Drives the
+# ADVISORY `make mutate` probe (build/go/Makefile); deliberately NOT in check/ci.
+github.com/go-gremlins/gremlins/cmd/gremlins@v0.6.0
+
 # YAML processing — the shared Go Makefile reads the .standards.yaml exemption
 # ledger and .goreleaser build ids with it; without it the ratchet cannot run.
 github.com/mikefarah/yq/v4@v4.53.3
