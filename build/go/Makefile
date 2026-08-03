@@ -466,12 +466,26 @@ coverage: $(COVERAGE_FOLDER) ## Run tests with coverage
 # is exactly COVER_THRESHOLD. This is the 100%-coverage enforcement every
 # consumer shares (folded into `check`); a consumer scopes COVER_PKGS to its own
 # tested set. Lists the sub-100% functions on failure so the miss is actionable.
+#
+# The profile is written to a per-invocation path and only moved onto the
+# canonical coverage.out at the end. Writing the shared name directly let two
+# concurrent runs in one repository interleave into it, and the verdict was then
+# read back out of the wreckage: a mangled profile makes `go tool cover` fail,
+# the total parses empty, and the gate reports a coverage miss that the code
+# does not have. A gate whose answer depends on what else happens to be running
+# is not a gate — and a red that goes away on a re-run is worse than a noisy
+# one, because it teaches everyone to re-run until green, which is exactly how
+# a real failure gets waved through.
 .PHONY: cover
 cover: $(COVERAGE_FOLDER) ## Run tests and assert COVER_THRESHOLD coverage of COVER_PKGS
-	$(GOTESTSUM) --format $(GO_TEST_FORMAT) -- -shuffle=$(GO_TEST_SHUFFLE) -covermode=$(COVER_MODE) -coverpkg=$(COVERPKG) -coverprofile=$(COVERAGE_FOLDER)/coverage.out $(COVER_PKGS)
-	@total=$$(go tool cover -func=$(COVERAGE_FOLDER)/coverage.out | awk '/^total:/{print $$3}'); \
+	@profile=$(COVERAGE_FOLDER)/coverage.$$$$.out; \
+	$(GOTESTSUM) --format $(GO_TEST_FORMAT) -- -shuffle=$(GO_TEST_SHUFFLE) -covermode=$(COVER_MODE) -coverpkg=$(COVERPKG) -coverprofile=$${profile} $(COVER_PKGS) \
+	  || { mv -f $${profile} $(COVERAGE_FOLDER)/coverage.out 2>/dev/null; exit 1; }; \
+	total=$$(go tool cover -func=$${profile} | awk '/^total:/{print $$3}'); \
 	echo "total coverage: $${total}"; \
-	[ "$${total}" = "$(COVER_THRESHOLD)" ] || { echo "coverage $${total} below $(COVER_THRESHOLD):"; go tool cover -func=$(COVERAGE_FOLDER)/coverage.out | awk '$$3 != "100.0%"'; exit 1; }
+	[ "$${total}" = "$(COVER_THRESHOLD)" ] \
+	  || { echo "coverage $${total} below $(COVER_THRESHOLD):"; go tool cover -func=$${profile} | awk '$$3 != "100.0%"'; mv -f $${profile} $(COVERAGE_FOLDER)/coverage.out; exit 1; }; \
+	mv -f $${profile} $(COVERAGE_FOLDER)/coverage.out
 
 # Build-tag-gated tests (integration, e2e, ...). The shared `test`/`test-all`
 # targets run only UNTAGGED unit tests; anything behind a `//go:build <tag>`
