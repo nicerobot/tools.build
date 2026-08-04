@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.12.0](https://github.com/nicerobot/tools.build/compare/v2.11.0...v2.12.0) (2026-08-04)
+
+
+### Bug Fixes
+
+* **ci/go:** run a repo's ci-prepare before the package probe ([1a4032e](https://github.com/nicerobot/tools.build/commit/1a4032e436b991bf24c737996c43e4f897f12b86))
+* **dependabot:** stop proposing to un-float first-party actions ([3f47f6d](https://github.com/nicerobot/tools.build/commit/3f47f6d20a32a211e99314f2a4b949712d196218))
+* **go:** the coverage gate no longer reads another run's wreckage ([5d6b150](https://github.com/nicerobot/tools.build/commit/5d6b1501d60598670ad03b41d37d056c02ea48f4))
+
 ## [2.11.0](https://github.com/nicerobot/tools.build/compare/v2.10.0...v2.11.0) (2026-08-02)
 
 
