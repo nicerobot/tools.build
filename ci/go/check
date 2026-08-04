@@ -14,6 +14,25 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+# A repo whose Go code embeds a generated tree cannot be listed until that tree
+# exists: `//go:embed all:frontend/dist` fails on a fresh clone, and the probe
+# below then reports "the package set is unknown" for a reason that has nothing
+# to do with private modules. That is a false accusation, and it left every
+# ui-class repo — the template included — permanently red.
+#
+# A repo declares that setup as `ci-prepare` and it runs FIRST. It must not need
+# anything outside this image: there is no Node here, and adding one for a
+# single class would put a frontend toolchain in the path of every Go repo. The
+# target's job is to make the embed RESOLVE, not to produce real assets — the
+# gate lints, vets and tests Go, none of which reads them. Real assets are still
+# built locally and for releases.
+#
+# Repos without the target are unaffected: `make -n` fails and nothing runs.
+if make -n ci-prepare >/dev/null 2>&1; then
+  echo "running ci-prepare (repo declares generated sources the package probe needs)"
+  make ci-prepare
+fi
+
 probe_err="$(mktemp)"
 trap 'rm -f "${probe_err}"' EXIT
 
