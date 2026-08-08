@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.14.0](https://github.com/nicerobot/tools.build/compare/v2.13.0...v2.14.0) (2026-08-08)
+
+
+### Features
+
+* **ci/docs:** let a repo declare gate exemptions in .standards.yaml ([8d0e57f](https://github.com/nicerobot/tools.build/commit/8d0e57f2264bee459db9c950a2f4c4f39eca7a0d))
+* **workflows:** make every gate manually re-runnable ([31281a4](https://github.com/nicerobot/tools.build/commit/31281a4a8d9c69120391b029f038c78c291196ec))
+
+
+### Bug Fixes
+
+* **ci/go:** run a multi-module repo's own aggregate instead of failing it ([cd2d93a](https://github.com/nicerobot/tools.build/commit/cd2d93af2193fbb0f137a5b90243fee35a595692))
+
 ## [2.13.0](https://github.com/nicerobot/tools.build/compare/v2.12.0...v2.13.0) (2026-08-08)
 
 
