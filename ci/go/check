@@ -33,6 +33,76 @@ if make -n ci-prepare >/dev/null 2>&1; then
   make ci-prepare
 fi
 
+# A repo can be a MULTI-MODULE aggregate: no go.mod at the ROOT, one per
+# example or sub-tool beneath it. `go list ./...` cannot answer there — it
+# reports "directory prefix . does not contain main module" — so the probe below
+# would call the package set unknown and fail a repo that is perfectly
+# well-formed. gloo-foo/examples is the case: eight modules, no root module.
+#
+# Such a repo owns its own aggregate Makefile that recurses into each module,
+# declared as `artifact:makefile` in .standards.yaml so distribute does not
+# clobber it. The gate's job here is to RUN that aggregate, not to second-guess
+# it. (gloo-foo/examples had already noticed the gap and aliased tools-version
+# to its own gate, reaching for the no-packages fallback below — which never
+# fired, because the probe errors rather than returning empty.)
+#
+# This stays fail-CLOSED: a multi-module repo with no aggregate target is an
+# error, exactly like an unanswerable probe, never a skip.
+# vendor/ and testdata/ are excluded for the same reason the package list below
+# filters vendor: a module inside either is not one of the repo's own, and
+# treating a vendored go.mod as evidence of a multi-module layout would route a
+# repo into the aggregate branch on someone else's file.
+multi_module_probe() {
+  find . -name go.mod -not -path './.*' -not -path '*/vendor/*' -not -path '*/testdata/*' -print -quit
+}
+
+if [[ ! -f go.mod ]] && [[ -n "$(multi_module_probe)" ]]; then
+  # The aggregate is run ONLY when the repo has declared that it owns its build,
+  # via the artifact:makefile exemption. That declaration is the difference
+  # between gloo-foo/examples — whose Makefile recurses into each module — and a
+  # repo carrying the SHARED single-module Makefile with one module in a
+  # subdirectory (nicerobot.github.io, whose only Go is ./year). Running `make
+  # ci` in the second case just fails further in, having still checked nothing,
+  # and hides a layout question behind a build error. That one falls through to
+  # the probe below, whose message already says what to do.
+  if [[ -f .standards.yaml ]] && grep -q 'artifact:makefile' .standards.yaml; then
+    for target in ci check; do
+      if make -n "${target}" >/dev/null 2>&1; then
+        echo "multi-module repo (no root go.mod) — running the repo's own aggregate '${target}'"
+        exec make "${target}"
+      fi
+    done
+  fi
+  cat >&2 <<'EOF'
+
+gate: this repo has Go modules BENEATH it but none at the root.
+
+Refusing to report success: `go list ./...` cannot enumerate packages from a
+directory that is not itself a module, so nothing here has been checked. This
+is an error, never a skip.
+
+Two shapes end differently.
+
+  A multi-module aggregate (many example or tool modules, no root module). It
+  owns an aggregate Makefile that recurses into each one, and declares that in
+  .standards.yaml so distribute does not clobber it:
+
+      exempt:
+        artifact:makefile: "<why this repo's build is its own>"
+
+  With that declared, this gate runs the repo's own `ci` (or `check`) target.
+
+  A repo whose Go lives in ONE subdirectory while the root is something else (a
+  site, a dataset). Nothing here can guess which subtree is the module, and
+  pointing the shared gate at the root checks nothing. Either move the module to
+  the root, or drop the workflow:
+
+      exempt:
+        artifact:workflow:go: "<module> lives in <dir>; gated there"
+EOF
+  exit 1
+fi
+
 probe_err="$(mktemp)"
 trap 'rm -f "${probe_err}"' EXIT
 
