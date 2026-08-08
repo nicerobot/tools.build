@@ -61,8 +61,8 @@ while read -r glob; do
   before=${#md_files[@]}
   mapfile -t md_files < <(printf '%s\n' "${md_files[@]}" | grep -v -- "$(printf '%s' "${glob}" | sed -E 's#\*\*/?#.*#g; s#^\./##')" || true)
   echo "STANDARDS: 'gate:docs:paths' excluded ${glob} ($((before - ${#md_files[@]})) file(s))"
-# printf '%s\n' — WITHOUT the newline `read` hits EOF on the final (often only)
-# entry and the loop body never runs, silently ignoring the declaration.
+  # printf '%s\n' — WITHOUT the newline `read` hits EOF on the final (often only)
+  # entry and the loop body never runs, silently ignoring the declaration.
 done < <(printf '%s\n' "$(standards_value 'gate:docs:paths')" | tr ',' '\n' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
 
 if [[ ${#md_files[@]} -eq 0 ]]; then
@@ -92,7 +92,7 @@ if [[ -n "${rules}" ]]; then
     [[ -n "${rule}" ]] || continue
     disables+="\"${rule}\": false, "
   done < <(printf '%s\n' "${rules}" | tr ',' '\n' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
-  sed -E "s/(\"config\"[[:space:]]*:[[:space:]]*\{)/\1 ${disables}/" "${md_config}" > "${active_md_config}"
+  sed -E "s/(\"config\"[[:space:]]*:[[:space:]]*\{)/\1 ${disables}/" "${md_config}" >"${active_md_config}"
   echo "STANDARDS: 'gate:docs:rules' disabled ${rules} (every other rule still applies)"
 fi
 
