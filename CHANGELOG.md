@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.13.0](https://github.com/nicerobot/tools.build/compare/v2.12.0...v2.13.0) (2026-08-08)
+
+
+### Bug Fixes
+
+* **go:** exclude testdata from the formatter's file list ([7e60329](https://github.com/nicerobot/tools.build/commit/7e6032975c2807cfc52607a37e7806430043cfa8))
+* **tooling:** yze v0.32.5, stickler v0.10.8 — clear the invariant ratchet ([d47ca59](https://github.com/nicerobot/tools.build/commit/d47ca59998d647a77a9f4371431b9388525ec235))
+
 ## [2.12.0](https://github.com/nicerobot/tools.build/compare/v2.11.0...v2.12.0) (2026-08-04)
 
 
