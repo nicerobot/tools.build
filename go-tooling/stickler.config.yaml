@@ -94,3 +94,25 @@ soft:
   # property — yze/fuzzassert, which is HARD, keeps those targets honest), so
   # it lands soft with per-repo baselines and gates again at zero.
   - yze/fuzzreq
+  #
+  # ---- 2026-08-09 registrations (the ruled backlog: register all idle analyzers) ----
+  #
+  # yze/boundedread is NEW on rollout terms: at its pre-registration measurement
+  # the fleet carried real unbounded reads of peer-controlled streams (HTTP
+  # bodies among them, one a genuine exploitable DoS). Each fix chooses a bound,
+  # which is a design decision per site, so it lands soft and gates again at
+  # zero.
+  - yze/boundedread
+  #
+  # yze/closewrite is NEW on the same terms: a discarded Close on a write-opened
+  # file reports success over data that may never have reached disk. The fix is
+  # small but touches error flow at each site; soft until the first-contact
+  # backlog drains, then hard.
+  - yze/closewrite
+  #
+  # yze/seams is NEW on the same terms: a direct call to an impure stdlib entry
+  # point (clock, filesystem, network, subprocess) outside a composition root
+  # hides an error branch no test can enter. The fix introduces the blessed
+  # package-level seam or an injected collaborator — a refactor per site, so it
+  # lands soft and gates again at zero.
+  - yze/seams

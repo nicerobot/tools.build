@@ -44,10 +44,14 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          # platforms is stated rather than left to the `|| 'linux/amd64'`
-          # fallback: this matrix has one entry, so the property must exist on
-          # the inferred type for the expression below to typecheck.
+          # platforms is stated on every entry rather than left to the
+          # `|| 'linux/amd64'` fallback, so the property exists on the inferred
+          # type for the expression below to typecheck.
+          #
+          # node-tooling is multi-arch because ci/node is: a dependant cannot be
+          # built for an architecture its base was not.
           - { name: go-tooling, context: go-tooling, platforms: "linux/amd64" }
+          - { name: node-tooling, context: node-tooling, platforms: "linux/amd64,linux/arm64" }
     steps:
       - uses: actions/checkout@v5
         with:

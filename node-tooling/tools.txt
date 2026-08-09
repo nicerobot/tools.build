@@ -1,0 +1,38 @@
+# tools.txt — the canonical pinned Node tool set.
+#
+# One `package@version` per line: the SINGLE source of every Node CLI's version,
+# installed verbatim by install-tools.sh into ${NODE_TOOLS_PREFIX} locally and
+# into the node-tooling image in CI — so a developer's machine and CI hold
+# byte-identical tool versions. Exactly the contract go-tooling/tools.txt holds
+# for Go, for the same reason.
+#
+# WHY THESE ARE NOT IN EACH REPO'S package.json. A CLI declared as a project
+# dependency drags its whole transitive graph into that project's lockfile,
+# where it becomes a standing CVE surface attributed to the application. That is
+# not hypothetical here: every www.* repo declared wrangler, so wrangler ->
+# miniflare -> undici@7.28.0 and vite -> postcss -> nanoid appeared as security
+# advisories against the SITE, and Dependabot failed on repos that ship none of
+# it. www.tsv.sh has zero runtime dependencies and was still failing on an
+# undici advisory. It is the same rule that keeps a `tool (...)` stanza out of
+# every go.mod, and it is broken here for the same cost.
+#
+# A tool's own vulnerabilities are dealt with HERE, once, rather than in each of
+# the ~55 repositories that happen to invoke it.
+#
+# Blank lines and lines beginning with `#` are ignored.
+
+# Cloudflare Workers/Pages CLI — builds, dry-runs and deployments.
+#
+# Pinned at the version already in use across the fleet rather than the latest.
+# 4.118.0+ depends on miniflare 5.x-ALPHA, which is the only line carrying a
+# patched undici (7.29.0); every stable miniflare 4.x pins undici 7.28.0. Taking
+# a prerelease build tool to clear an advisory in a build tool is a trade to make
+# deliberately, in this file, when someone decides to — not silently.
+wrangler@4.114.0
+
+# Biome — lint + format for JS/TS, the tool ci/typescript runs.
+#
+# Moved here from a bare `npm install -g` in ci/typescript's Dockerfile so that
+# every Node tool version lives in one manifest, the way every Go tool version
+# lives in go-tooling/tools.txt.
+@biomejs/biome@1.9.4
