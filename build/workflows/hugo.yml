@@ -2,8 +2,32 @@ name: hugo
 on:
   push:
     branches: [main]
+    paths:
+      - "hugo.json"
+      - "hugo.yaml"
+      - "hugo.toml"
+      - "config/**"
+      - "content/**"
+      - "layouts/**"
+      - "assets/**"
+      - "static/**"
+      - "**.md"
+      - ".standards.yaml"
+      - ".github/workflows/hugo.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "hugo.json"
+      - "hugo.yaml"
+      - "hugo.toml"
+      - "config/**"
+      - "content/**"
+      - "layouts/**"
+      - "assets/**"
+      - "static/**"
+      - "**.md"
+      - ".standards.yaml"
+      - ".github/workflows/hugo.yml"
 # __SCHEDULE_ON__
 concurrency:
   group: hugo-${{ github.ref }}

@@ -2,8 +2,26 @@ name: dockerfiles
 on:
   push:
     branches: [main]
+    paths:
+      - "**Dockerfile"
+      - "**Dockerfile.*"
+      - "**.dockerfile"
+      - "docker/**"
+      - ".dockerignore"
+      - ".hadolint*"
+      - ".standards.yaml"
+      - ".github/workflows/dockerfiles.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "**Dockerfile"
+      - "**Dockerfile.*"
+      - "**.dockerfile"
+      - "docker/**"
+      - ".dockerignore"
+      - ".hadolint*"
+      - ".standards.yaml"
+      - ".github/workflows/dockerfiles.yml"
 # __SCHEDULE_ON__
 concurrency:
   group: dockerfiles-${{ github.ref }}

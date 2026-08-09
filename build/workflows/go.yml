@@ -2,8 +2,34 @@ name: go
 on:
   push:
     branches: [main]
+    paths:
+      - "**.go"
+      - "go.mod"
+      - "go.sum"
+      - "Makefile"
+      - "Makefile.local"
+      - ".golangci.yaml"
+      - ".golangci.override.yml"
+      - ".stickler.yaml"
+      - ".goreleaser.yml"
+      - ".goreleaser.yaml"
+      - ".standards.yaml"
+      - ".github/workflows/go.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "**.go"
+      - "go.mod"
+      - "go.sum"
+      - "Makefile"
+      - "Makefile.local"
+      - ".golangci.yaml"
+      - ".golangci.override.yml"
+      - ".stickler.yaml"
+      - ".goreleaser.yml"
+      - ".goreleaser.yaml"
+      - ".standards.yaml"
+      - ".github/workflows/go.yml"
 # __SCHEDULE_ON__
 concurrency:
   group: go-${{ github.ref }}

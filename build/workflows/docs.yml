@@ -2,8 +2,22 @@ name: docs
 on:
   push:
     branches: [main]
+    paths:
+      - "**.md"
+      - "**.mdx"
+      - ".markdownlint*"
+      - ".prettierrc*"
+      - ".standards.yaml"
+      - ".github/workflows/docs.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "**.md"
+      - "**.mdx"
+      - ".markdownlint*"
+      - ".prettierrc*"
+      - ".standards.yaml"
+      - ".github/workflows/docs.yml"
 # __SCHEDULE_ON__
 concurrency:
   group: docs-${{ github.ref }}

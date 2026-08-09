@@ -2,8 +2,36 @@ name: typescript
 on:
   push:
     branches: [main]
+    paths:
+      - "**.ts"
+      - "**.tsx"
+      - "**.js"
+      - "**.jsx"
+      - "**.mjs"
+      - "**.cjs"
+      - "package.json"
+      - "package-lock.json"
+      - "pnpm-lock.yaml"
+      - "tsconfig*.json"
+      - "biome.json*"
+      - ".standards.yaml"
+      - ".github/workflows/typescript.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "**.ts"
+      - "**.tsx"
+      - "**.js"
+      - "**.jsx"
+      - "**.mjs"
+      - "**.cjs"
+      - "package.json"
+      - "package-lock.json"
+      - "pnpm-lock.yaml"
+      - "tsconfig*.json"
+      - "biome.json*"
+      - ".standards.yaml"
+      - ".github/workflows/typescript.yml"
 # __SCHEDULE_ON__
 concurrency:
   group: typescript-${{ github.ref }}

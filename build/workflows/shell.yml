@@ -2,8 +2,26 @@ name: shell
 on:
   push:
     branches: [main]
+    paths:
+      - "**.sh"
+      - "**.bash"
+      - "bin/**"
+      - "scripts/**"
+      - ".shellcheckrc"
+      - ".editorconfig"
+      - ".standards.yaml"
+      - ".github/workflows/shell.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "**.sh"
+      - "**.bash"
+      - "bin/**"
+      - "scripts/**"
+      - ".shellcheckrc"
+      - ".editorconfig"
+      - ".standards.yaml"
+      - ".github/workflows/shell.yml"
 # __SCHEDULE_ON__
 concurrency:
   group: shell-${{ github.ref }}

@@ -2,8 +2,18 @@ name: actions
 on:
   push:
     branches: [main]
+    paths:
+      - ".github/workflows/**"
+      - ".github/actions/**"
+      - ".actionlint*"
+      - ".standards.yaml"
   pull_request:
     branches: [main]
+    paths:
+      - ".github/workflows/**"
+      - ".github/actions/**"
+      - ".actionlint*"
+      - ".standards.yaml"
 # __SCHEDULE_ON__
 concurrency:
   group: actions-${{ github.ref }}

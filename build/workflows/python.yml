@@ -2,8 +2,26 @@ name: python
 on:
   push:
     branches: [main]
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - "requirements*.txt"
+      - "uv.lock"
+      - "poetry.lock"
+      - "setup.cfg"
+      - ".standards.yaml"
+      - ".github/workflows/python.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - "requirements*.txt"
+      - "uv.lock"
+      - "poetry.lock"
+      - "setup.cfg"
+      - ".standards.yaml"
+      - ".github/workflows/python.yml"
 # __SCHEDULE_ON__
 concurrency:
   group: python-${{ github.ref }}
