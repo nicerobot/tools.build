@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.15.0](https://github.com/nicerobot/tools.build/compare/v2.14.0...v2.15.0) (2026-08-09)
+
+
+### Features
+
+* hugo, python and typescript gates take the schedule marker ([0c0bbcc](https://github.com/nicerobot/tools.build/commit/0c0bbcc9db82382ab4f2ab5be7933f614c486baf))
+* **standards:** register the docs gate and its two narrowings ([05e0011](https://github.com/nicerobot/tools.build/commit/05e001148f9a9d0baa94eaed1ba461fd8f4fc466))
+* **workflows:** each gate runs only when its own inputs change ([5b545dc](https://github.com/nicerobot/tools.build/commit/5b545dc86432e915cb308fee1d0dd5e1cc2fcc59))
+
+
+### Reverts
+
+* **workflows:** drop the duplicate workflow_dispatch I added ([0421543](https://github.com/nicerobot/tools.build/commit/04215430e4028fd31faaa74d805201def1472caa))
+
 ## [2.14.0](https://github.com/nicerobot/tools.build/compare/v2.13.0...v2.14.0) (2026-08-08)
 
 
