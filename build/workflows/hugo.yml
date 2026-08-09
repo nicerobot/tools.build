@@ -4,6 +4,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+# __SCHEDULE_ON__
 concurrency:
   group: hugo-${{ github.ref }}
   cancel-in-progress: true
