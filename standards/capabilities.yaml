@@ -80,6 +80,28 @@ capabilities:
     description: go.mod/go.sum are tidy (`go mod tidy -diff` clean) — no dependency in go.sum that nothing imports
     raw: tidy-check-raw
 
+  # The docs gate and its two narrowings. They are separate capabilities rather
+  # than one because they concede different amounts, and a ledger that cannot
+  # tell them apart is not a ledger: gate:docs gives up the whole check,
+  # gate:docs:paths keeps every rule and excludes named trees (a vendored skill
+  # pack written to someone else's ruleset), and gate:docs:rules keeps every
+  # file and drops one rule (a document of stacked top-level sections, which
+  # MD025 reads as many titles).
+  #
+  # They had to be registered here: ci/docs/check honoured all three the day
+  # they were written, but the registry did not know them, so `standards
+  # verify` and distribute rejected the marker outright — three ixnai repos
+  # failed to distribute with "unknown capability: gate:docs:paths".
+  gate:docs:
+    kind: gate
+    description: markdown satisfies the shared docs ruleset (markdownlint + prettier + mermaid)
+  gate:docs:paths:
+    kind: gate
+    description: comma-separated globs the docs gate skips; every other file stays fully gated
+  gate:docs:rules:
+    kind: gate
+    description: comma-separated markdownlint rule ids disabled for this repo; every other rule still applies
+
   # ---- conventions (RESERVED — analyzers deferred to gomatic/analyzers/*/v1) ---
   convention:sentinel-errors:
     kind: convention
