@@ -46,6 +46,22 @@ capabilities:
   artifact:dependabot:
     kind: artifact
     description: Dependabot version-update config (.github/dependabot.yml); per-ecosystem, majors ignored for version updates
+  # The bundle AS A WHOLE, rather than one file within it. distribute routes a
+  # repo to the plan it earns, and a worker www repo — a www.* name with a src/
+  # tree, i.e. a Cloudflare Worker rather than a static site — matches neither
+  # the static-www CI-gate route nor the default distributable set, so it earns
+  # nothing at all. That is deliberate, but until now it was recorded ONLY in
+  # distribute's source: from the repository's side, "deliberately outside
+  # distribution" and "nobody ever looked" were indistinguishable, and
+  # www.adm.one's workflows sat frozen for weeks without submodule checkout
+  # because everyone assumed distribution covered them.
+  #
+  # Exempting this declares the opt-out where the repo can see it, with a reason,
+  # and `git repo standards verify` reports any repo that earns no plan and has
+  # NOT declared it — so the next one cannot go silent.
+  artifact:build-bundle:
+    kind: artifact
+    description: the uniform build bundle as a whole (Makefile, configs, workflows); exempting it declares the repo manages its own build
   artifact:docstyle:
     kind: artifact
     description: distribute-docs Hugo style unit (layouts/ + assets/); exempt a docs repo that supplies its own theme (e.g. a Hugo module)
