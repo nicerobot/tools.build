@@ -14,6 +14,14 @@ FROM ghcr.io/nicerobot/tools.build/node-tooling:v2
 # run the real steps here and re-exec into this image everywhere else.
 ENV GATE=1
 
+# The ruleset is BAKED, not discovered. ci/docs already works this way — it
+# carries /etc/gomatic.markdownlint-cli2.jsonc and /etc/gomatic.prettierrc.json
+# — while this gate carried none, so every repository was judged against
+# biome's undeclared built-in defaults and not one of them had a biome.json.
+# An unowned default is not a standard: nobody chose it, nobody can change it in
+# one place, and a biome release moves it silently.
+COPY biome.json /etc/gomatic.biome.json
+
 COPY --chmod=0755 check /usr/local/bin/check
 
 WORKDIR /work

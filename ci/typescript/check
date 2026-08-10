@@ -36,5 +36,34 @@ if [[ ${#files[@]} -eq 0 ]]; then
   exit 0
 fi
 
+# The baked ruleset is COPIED INTO the workspace rather than passed with
+# --config-path, because --config-path also tells Biome where the project root
+# is: pointed at /etc, every rule in the `project` domain reports "cannot be
+# verified because no package.json file was found" and noUndeclaredDependencies
+# becomes two false failures per repo. Copied in, the root is the repo and those
+# rules work.
+#
+# It overwrites a repository's own biome.json for the duration, which is the
+# intent: the fleet ruleset is not negotiable per repo, and a repo that could
+# drop a laxer config beside its source could opt out of the gate silently. The
+# copy is removed again on exit, whatever the outcome, so a local run against a
+# real working tree leaves nothing behind.
+readonly gate_config=biome.json
+readonly saved_config=.biome.json.gate-backup
+if [ -f "${gate_config}" ]; then
+  mv "${gate_config}" "${saved_config}"
+fi
+restore_config() {
+  rm -f "${gate_config}"
+  if [ -f "${saved_config}" ]; then
+    mv "${saved_config}" "${gate_config}"
+  fi
+}
+trap restore_config EXIT INT TERM HUP
+cp /etc/gomatic.biome.json "${gate_config}"
+
+# --error-on-warnings because a warning that never fails anything is not a
+# standard, it is a suggestion. selfmux carried 113 of them at once while its
+# gate reported success on the strength of zero errors.
 echo '== biome ci =='
-biome ci "${files[@]}"
+biome ci --error-on-warnings "${files[@]}"
