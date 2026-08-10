@@ -35,28 +35,80 @@ jobs:
   # `FROM ghcr.io/nicerobot/tools.build/go-tooling:vMAJOR`, and in a single
   # parallel matrix it finished five minutes before that base was pushed —
   # shipping a ci/go whose toolchain was a release behind, silently.
-  base-images:
-    name: publish ${{ matrix.image.name }}
+  # Base images are built on a runner NATIVE to each architecture, then joined
+  # into one manifest list. The alternative — one job emulating arm64 through
+  # qemu — is not viable here: go-tooling compiles the whole pinned tool set
+  # from source, cgo-linked libpg_query included, and under emulation that
+  # overruns any sane timeout. This repository is public, so the arm64 runner
+  # costs nothing, and each half builds at full speed on its own silicon.
+  #
+  # Each half pushes by DIGEST and carries no tag; a tag pushed twice would
+  # leave whichever architecture finished last as the whole meaning of that
+  # tag. The merge job below is what gives the digests a name.
+  base-build:
+    name: build ${{ matrix.image.name }} (${{ matrix.platform.arch }})
     if: github.repository == 'nicerobot/tools.build'
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
+    runs-on: ${{ matrix.platform.runner }}
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
         image:
-          # platforms is stated on every entry rather than left to the
-          # `|| 'linux/amd64'` fallback, so the property exists on the inferred
-          # type for the expression below to typecheck.
-          #
-          # node-tooling is multi-arch because ci/node is: a dependant cannot be
-          # built for an architecture its base was not.
-          - { name: go-tooling, context: go-tooling, platforms: "linux/amd64" }
-          - { name: node-tooling, context: node-tooling, platforms: "linux/amd64,linux/arm64" }
+          - { name: go-tooling, context: go-tooling }
+          - { name: node-tooling, context: node-tooling }
+        platform:
+          - { arch: amd64, runner: ubuntu-latest }
+          - { arch: arm64, runner: ubuntu-24.04-arm }
     steps:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.image.context }}
+          platforms: linux/${{ matrix.platform.arch }}
+          outputs: type=image,name=ghcr.io/${{ github.repository }}/${{ matrix.image.name }},push-by-digest=true,name-canonical=true,push=true
+          provenance: true
+          sbom: true
+      - name: export digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${DIGEST#sha256:}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.image.name }}-${{ matrix.platform.arch }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # The manifest list IS the release: it is what a consumer's tag resolves to,
+  # and what cosign signs. Signing the list rather than either half means one
+  # signature covers every architecture the tag can serve.
+  base-images:
+    name: publish ${{ matrix.image }}
+    needs: base-build
+    if: github.repository == 'nicerobot/tools.build'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [go-tooling, node-tooling]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digest-${{ matrix.image }}-*
+          merge-multiple: true
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -68,34 +120,32 @@ jobs:
         # Derive the major alias from the SemVer tag (v2.1.0 -> v2; a bare v2 maps
         # to itself) so consumers pinning :vMAJOR always get the latest of that
         # major — the uniform container-versioning scheme: :vX.Y.Z, :vX, :latest.
-        # TAG is the workflow_call input when release-please.yml invokes this
-        # workflow directly (its own tag push can't retrigger this workflow's
-        # `on: push: tags` event), else the pushed tag ref itself.
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "major=${TAG%%.*}" >> "$GITHUB_OUTPUT"
-      - id: build
-        uses: docker/build-push-action@v6
-        with:
-          context: ${{ matrix.image.context }}
-          # Gates consumed by local `make ci` on developer machines publish arm64
-          # alongside amd64 (matrix.platforms); the rest stay amd64-only until they
-          # need a local story — qemu-emulated builds are slow enough to matter.
-          platforms: ${{ matrix.image.platforms || 'linux/amd64' }}
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ steps.meta.outputs.tag }}
-            ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ steps.meta.outputs.major }}
-            ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:latest
-          provenance: true
-          sbom: true
-      - name: cosign sign (keyless)
+      - name: create and sign the manifest list
+        working-directory: /tmp/digests
         env:
-          IMAGE: ghcr.io/${{ github.repository }}/${{ matrix.image.name }}
-          DIGEST: ${{ steps.build.outputs.digest }}
-        run: cosign sign --yes "${IMAGE}@${DIGEST}"
+          IMAGE: ghcr.io/${{ github.repository }}/${{ matrix.image }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          MAJOR: ${{ steps.meta.outputs.major }}
+        run: |
+          # One artifact file per architecture, each named for its digest.
+          # Collected into an array rather than an unquoted expansion so the
+          # reference list cannot be resplit by whitespace.
+          sources=()
+          for file in *; do
+            sources+=("${IMAGE}@sha256:${file}")
+          done
+          docker buildx imagetools create \
+            --tag "${IMAGE}:${TAG}" \
+            --tag "${IMAGE}:${MAJOR}" \
+            --tag "${IMAGE}:latest" \
+            "${sources[@]}"
+          digest="$(docker buildx imagetools inspect "${IMAGE}:${TAG}" --format '{{json .Manifest}}' | jq -r .digest)"
+          cosign sign --yes "${IMAGE}@${digest}"
 
   images:
     name: publish ${{ matrix.image.name }}
@@ -113,10 +163,10 @@ jobs:
           - { name: ci/shell, context: ci/shell }
           - { name: ci/actions, context: ci/actions }
           - { name: ci/dockerfiles, context: ci/dockerfiles }
-          - { name: ci/python, context: ci/python, platforms: "linux/amd64,linux/arm64" }
-          - { name: ci/node, context: ci/node, platforms: "linux/amd64,linux/arm64" }
-          - { name: ci/java, context: ci/java, platforms: "linux/amd64,linux/arm64" }
-          - { name: ci/cpp, context: ci/cpp, platforms: "linux/amd64,linux/arm64" }
+          - { name: ci/python, context: ci/python }
+          - { name: ci/node, context: ci/node }
+          - { name: ci/java, context: ci/java }
+          - { name: ci/cpp, context: ci/cpp }
           - { name: ci/typescript, context: ci/typescript }
           - { name: ci/terraform, context: ci/terraform }
           - { name: ci/hugo, context: ci/hugo }
@@ -148,10 +198,14 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.image.context }}
-          # Gates consumed by local `make ci` on developer machines publish arm64
-          # alongside amd64 (matrix.platforms); the rest stay amd64-only until they
-          # need a local story — qemu-emulated builds are slow enough to matter.
-          platforms: ${{ matrix.image.platforms || 'linux/amd64' }}
+          # EVERY image is multi-arch. A developer's `make ci` and the pre-push
+          # hook run these gates on the machine in front of them, and an
+          # amd64-only gate on an arm64 laptop runs under qemu — minutes of
+          # emulated build per push, which is what made the local gate feel
+          # optional. These images are thin layers over multi-arch bases (a COPY,
+          # at most one install), so qemu costs little HERE; the bases that
+          # actually compile are built natively in base-build above.
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ steps.meta.outputs.tag }}
