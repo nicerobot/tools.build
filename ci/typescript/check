@@ -90,6 +90,17 @@ restore_config() {
   fi
 }
 trap restore_config EXIT INT TERM HUP
+# A `//` comment in a biome.json makes biome behave exactly as if the file did
+# not exist: no parse error, no warning, no non-zero exit — every rule silently
+# reverts to its default. That is a gate that fails OPEN, reporting a healthy
+# pass while measuring nothing this file configures, so it is asserted rather
+# than documented. See README.md for the measurement.
+if grep -qE '^[[:space:]]*//' /etc/gomatic.biome.json; then
+  echo 'gate config /etc/gomatic.biome.json contains a comment line.' >&2
+  echo 'Biome silently ignores a commented config — the whole ruleset would' >&2
+  echo 'be void. Move the prose to ci/typescript/README.md.' >&2
+  exit 1
+fi
 cp /etc/gomatic.biome.json "${gate_config}"
 
 # --error-on-warnings because a warning that never fails anything is not a

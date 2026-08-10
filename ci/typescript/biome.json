@@ -17,7 +17,13 @@
         "preset": "all"
       },
       "security": {
-        "preset": "all"
+        "preset": "all",
+        "noSecrets": {
+          "level": "error",
+          "options": {
+            "entropyThreshold": 45
+          }
+        }
       },
       "suspicious": {
         "preset": "all"
