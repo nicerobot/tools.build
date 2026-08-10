@@ -39,10 +39,29 @@ mapfile -t candidates < <(find . -type f \
   ${prune[@]+"${prune[@]}"} \
   -not -name '*.min.js' -not -name '*.bundle.js' | sort)
 
+# A bundler's output is machine-generated whatever it is called, and the name
+# exclusions above only catch the two conventional spellings. www.tsvsheet.com
+# commits its esbuild output as static/app/hosted.js, which matches none of
+# them, so the gate linted a minified bundle and reported 45 style errors
+# against generated code — noise that hides a real finding and that no author
+# can act on.
+#
+# Minification is detected by line length, which is filename-independent and
+# true of every bundler. The separation is not marginal: that bundle's longest
+# line is 14248 characters, while the longest line in the hand-written sources
+# of three separate repositories measured 410, 228 and 185. 1000 sits an order
+# of magnitude clear of real code and an order of magnitude below the bundle.
+readonly GENERATED_LINE_LENGTH=1000
+
 files=()
 if [[ ${#candidates[@]} -gt 0 ]]; then
   for f in "${candidates[@]}"; do
     if head -n3 "${f}" | grep -qE 'Generated from .* by ANTLR|Code generated .* DO NOT EDIT|@generated'; then
+      continue
+    fi
+    if awk -v max="${GENERATED_LINE_LENGTH}" \
+      'length($0) > max { found = 1; exit } END { exit !found }' "${f}"; then
+      echo "skipping ${f}: line over ${GENERATED_LINE_LENGTH} chars — generated/minified"
       continue
     fi
     files+=("${f}")
