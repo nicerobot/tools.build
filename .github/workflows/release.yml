@@ -2,11 +2,11 @@
 # (build-push-action attestations) and a keyless cosign signature (spec R8/R17).
 # Hardened per R15: scoped permissions, repo guard, no persisted credentials.
 #
-# Callable two ways: directly on a `v*` tag push (manual `git tag && git push`),
-# or as a reusable workflow invoked by release-please.yml once it tags a release
-# itself — the default GITHUB_TOKEN release-please uses can't re-trigger this
-# workflow's own tag-push event, so release-please.yml calls it in-run instead
-# via `uses:` and passes the tag it just created through the `tag` input.
+# Callable two ways: directly on a `v*` tag push (a deliberate manual
+# `git tag && git push`), or as a reusable workflow invoked by tag.yml once the
+# `tag` action has tagged main — a GITHUB_TOKEN-pushed tag can't re-trigger this
+# workflow's own tag-push event, so tag.yml calls it in-run instead via `uses:`
+# and passes the tag it just created through the `tag` input.
 name: release
 
 on:
@@ -186,7 +186,7 @@ jobs:
         # Derive the major alias from the SemVer tag (v2.1.0 -> v2; a bare v2 maps
         # to itself) so consumers pinning :vMAJOR always get the latest of that
         # major — the uniform container-versioning scheme: :vX.Y.Z, :vX, :latest.
-        # TAG is the workflow_call input when release-please.yml invokes this
+        # TAG is the workflow_call input when tag.yml invokes this
         # workflow directly (its own tag push can't retrigger this workflow's
         # `on: push: tags` event), else the pushed tag ref itself.
         env:
@@ -241,7 +241,7 @@ jobs:
           # `git tag && git push`) the checkout already holds ${TAG}, and a
           # non-forced fetch of a ref that exists is rejected with "would
           # clobber existing tag" — which failed this job for every manually
-          # cut tag while the release-please path, checking out main, passed.
+          # cut tag while the tag.yml path, checking out main, passed.
           git fetch --depth 1 --force origin "+refs/tags/${TAG}:refs/tags/${TAG}"
           git tag -f "${major}" "$(git rev-list -n1 "refs/tags/${TAG}")"
           git push -f origin "refs/tags/${major}"

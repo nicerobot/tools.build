@@ -1,0 +1,55 @@
+# tools.build tags itself the way it tags everything else.
+#
+# Every other repository in the ecosystem gets its version from the `tag` action
+# in THIS repository: conventional commits since the last tag decide the bump,
+# the tag is pushed on merge to main, and nobody is asked to merge anything.
+# This repository alone used release-please, whose model is a long-lived release
+# PR — so every push to main force-updated a pull request whose entire diff was
+# one line of `.release-please-manifest.json`, forever. A repository that ships
+# a tagging mechanism to a fleet and declines to use it is the definition of
+# untested; now the action's own release is the thing that exercises it.
+#
+# A GITHUB_TOKEN-pushed tag cannot retrigger release.yml's own `on: push: tags`
+# event, so publishing is chained IN-RUN below rather than left to that trigger.
+# release.yml keeps the trigger anyway, for a deliberate manual `git tag`.
+name: tag
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    if: github.repository == 'nicerobot/tools.build'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+      bumped: ${{ steps.tag.outputs.bumped }}
+    steps:
+      # Full history and tags so the SemVer computation sees every prior tag;
+      # the default persist-credentials (true) is REQUIRED here, because this
+      # job pushes the tag it computes.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      # The working tree's own copy, not a published ref: a change to the action
+      # is then exercised by the very push that makes it, which is the whole
+      # point of releasing it from here. Opt out per repo with `.no-autorelease`.
+      - id: tag
+        uses: ./tag
+
+  publish:
+    needs: tag
+    if: ${{ needs.tag.outputs.bumped == 'true' }}
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.tag.outputs.version }}
+    permissions:
+      contents: write # release.yml's major-tag job force-pushes the floating vMAJOR tag
+      packages: write
+      id-token: write
+      attestations: write

@@ -48,6 +48,18 @@ fi
 # drop a laxer config beside its source could opt out of the gate silently. The
 # copy is removed again on exit, whatever the outcome, so a local run against a
 # real working tree leaves nothing behind.
+# Dependencies are installed before linting, when the repo has a lockfile.
+#
+# Without them the strongest rules are inert or actively wrong: the `types`
+# domain has no types to infer from, and noUnresolvedImports reports every
+# third-party import as unresolved — 54 false failures in one repo, which
+# disappear entirely once node_modules exists. A gate that cannot resolve an
+# import is not checking the code, it is checking the checkout.
+if [ -f package-lock.json ]; then
+  echo '== npm ci =='
+  npm ci --no-audit --no-fund
+fi
+
 readonly gate_config=biome.json
 readonly saved_config=.biome.json.gate-backup
 if [ -f "${gate_config}" ]; then

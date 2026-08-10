@@ -23,9 +23,32 @@
       },
       "style": {
         "preset": "all",
-        "noDefaultExport": "off",
-        "noMagicNumbers": "off",
-        "useNamingConvention": "off"
+        "useNamingConvention": {
+          "level": "error",
+          "options": {
+            "strictCase": true,
+            "conventions": [
+              {
+                "selector": {
+                  "kind": "typeProperty"
+                },
+                "formats": [
+                  "camelCase",
+                  "snake_case"
+                ]
+              },
+              {
+                "selector": {
+                  "kind": "objectLiteralMember"
+                },
+                "formats": [
+                  "camelCase",
+                  "snake_case"
+                ]
+              }
+            ]
+          }
+        }
       }
     },
     "domains": {
@@ -65,5 +88,40 @@
         "organizeImports": "on"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "**/src/index.ts",
+        "**/src/index.tsx",
+        "**/worker.ts",
+        "**/*.config.ts",
+        "**/*.config.js",
+        "**/*.config.mjs"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/tests/**",
+        "**/test/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noMagicNumbers": "off"
+          }
+        }
+      }
+    }
+  ]
 }
