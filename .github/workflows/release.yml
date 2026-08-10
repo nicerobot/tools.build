@@ -206,6 +206,17 @@ jobs:
           # at most one install), so qemu costs little HERE; the bases that
           # actually compile are built natively in base-build above.
           platforms: linux/amd64,linux/arm64
+          # Without a cache every run rebuilt every layer from scratch, under
+          # qemu for arm64. Measured on the run that published a ONE-LINE change
+          # to ci/docs/check — the last COPY in the file — publish ci/docs took
+          # 27 minutes while every other ci image took 0-3. The cost is entirely
+          # ci/docs' apt-get install of chromium plus mermaid-cli, emulated.
+          #
+          # Scoped per image so one image's layers cannot evict another's. With
+          # the Dockerfile unchanged, that expensive layer is now a cache hit and
+          # only the final COPY is rebuilt.
+          cache-from: type=gha,scope=${{ matrix.image.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.image.name }}:${{ steps.meta.outputs.tag }}
