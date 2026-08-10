@@ -14,11 +14,25 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+# Submodule paths are excluded: a submodule is another REPOSITORY's code, and
+# it is gated in that repository. Linting it here reports the same findings
+# twice, against a checkout that cannot fix them, and a consumer's gate would
+# fail for its dependency's debt. www.adm.one carries pike and watchword this
+# way.
+prune=()
+if [ -f .gitmodules ]; then
+  while IFS= read -r submodule; do
+    test -n "${submodule}" || continue
+    prune+=(-not -path "./${submodule}/*")
+  done < <(git config --file .gitmodules --get-regexp '^submodule\..*\.path$' 2>/dev/null | awk '{print $2}')
+fi
+
 mapfile -t candidates < <(find . -type f \
   \( -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' \
   -o -name '*.mjs' -o -name '*.cjs' \) \
   -not -path '*/vendor/*' -not -path '*/node_modules/*' -not -path '*/dist/*' \
   -not -path './public/*' -not -path '*/coverage/*' \
+  ${prune[@]+"${prune[@]}"} \
   -not -name '*.min.js' -not -name '*.bundle.js' | sort)
 
 files=()
