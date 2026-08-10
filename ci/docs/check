@@ -49,10 +49,29 @@ if [[ -n "${exempt_reason}" ]]; then
   exit 0
 fi
 
+# A submodule's markdown belongs to the submodule's own repository, which gates
+# it there. Once workflows check submodules out (submodules: recursive, which
+# they must, or a dependent repo cannot build), the parent's docs gate starts
+# linting its dependencies' READMEs and agent files and fails for their debt —
+# www.adm.one carries pike and watchword, and reported five findings that were
+# entirely watchword's.
+#
+# .gitmodules is parsed with awk rather than `git config --file`, because this
+# image has no git: the git-based version in ci/typescript failed silently, its
+# stderr going to /dev/null, and pruned nothing.
+prune=()
+if [ -f .gitmodules ]; then
+  while IFS= read -r submodule; do
+    test -n "${submodule}" || continue
+    prune+=(-not -path "./${submodule}/*")
+  done < <(awk -F'=' '/^[[:space:]]*path[[:space:]]*=/ {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}' .gitmodules)
+fi
+
 # CHANGELOG.md is release-please output — generated, so exempt from the gates
 # like every generated artifact.
 mapfile -t md_files < <(find . -name '*.md' -not -name 'CHANGELOG.md' \
-  -not -path '*/vendor/*' -not -path '*/node_modules/*' | sort)
+  -not -path '*/vendor/*' -not -path '*/node_modules/*' \
+  ${prune[@]+"${prune[@]}"} | sort)
 
 # Declared exclusions, e.g. a tree of vendored third-party docs that were never
 # written to this ruleset. The repo's OWN markdown stays gated.
