@@ -120,6 +120,10 @@
           "style": {
             "noDefaultExport": "off",
             "noMagicNumbers": "off"
+          },
+          "performance": {
+            "noBarrelFile": "off",
+            "noReExportAll": "off"
           }
         }
       }
@@ -160,7 +164,9 @@
           "style": {
             "noMagicNumbers": "off",
             "noProcessEnv": "off",
-            "noExcessiveLinesPerFile": "off"
+            "noExcessiveLinesPerFile": "off",
+            "noExportedImports": "off",
+            "noDefaultExport": "off"
           },
           "correctness": {
             "noNodejsModules": "off",
@@ -168,10 +174,13 @@
           },
           "performance": {
             "useTopLevelRegex": "off",
-            "noAwaitInLoops": "off"
+            "noAwaitInLoops": "off",
+            "noBarrelFile": "off",
+            "noReExportAll": "off"
           },
           "complexity": {
-            "noExcessiveLinesPerFunction": "off"
+            "noExcessiveLinesPerFunction": "off",
+            "noRedundantDefaultExport": "off"
           },
           "suspicious": {
             "useAwait": "off"
