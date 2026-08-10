@@ -36,7 +36,8 @@
                 "formats": [
                   "camelCase",
                   "snake_case",
-                  "PascalCase"
+                  "PascalCase",
+                  "CONSTANT_CASE"
                 ]
               },
               {
@@ -46,7 +47,8 @@
                 "formats": [
                   "camelCase",
                   "snake_case",
-                  "PascalCase"
+                  "PascalCase",
+                  "CONSTANT_CASE"
                 ]
               }
             ]
@@ -138,6 +140,18 @@
           },
           "complexity": {
             "noExcessiveLinesPerFunction": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/*.d.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNamespace": "off"
           }
         }
       }
