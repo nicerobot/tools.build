@@ -156,3 +156,14 @@ capabilities:
     kind: convention
     description: no spec(s)/doc(s) internal-content folder in a source repo (specs belong in <org>/_projects/specs/<repo>/, docs in docs.<repo>)
     analyzer: true
+  # Keyed by the bare analyzer name, like classification and internal-content.
+  # Separate from internal-content on the gate:docs precedent: the two concede
+  # different things. internal-content sanctions two homes for documentation
+  # (the _projects hub, docs.*); this rule sanctions NONE, because the objection
+  # is duplicating the git history rather than where documentation lives. A repo
+  # exempting internal-content must not silently acquire a changelog with it.
+  # Root-anchored, so a vendored third-party changelog stays committable.
+  changelog:
+    kind: convention
+    description: no root changelog (CHANGELOG*/CHANGES*/HISTORY.md/NEWS.md) in any repo — git log, the tags, and the GitHub release notes are the record
+    analyzer: true
