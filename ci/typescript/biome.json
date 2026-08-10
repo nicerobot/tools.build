@@ -10,7 +10,8 @@
         "preset": "all"
       },
       "correctness": {
-        "preset": "all"
+        "preset": "all",
+        "useImportExtensions": "off"
       },
       "performance": {
         "preset": "all"
@@ -26,7 +27,7 @@
         "useNamingConvention": {
           "level": "error",
           "options": {
-            "strictCase": true,
+            "strictCase": false,
             "conventions": [
               {
                 "selector": {
@@ -34,7 +35,8 @@
                 },
                 "formats": [
                   "camelCase",
-                  "snake_case"
+                  "snake_case",
+                  "PascalCase"
                 ]
               },
               {
@@ -43,12 +45,15 @@
                 },
                 "formats": [
                   "camelCase",
-                  "snake_case"
+                  "snake_case",
+                  "PascalCase"
                 ]
               }
             ]
           }
-        }
+        },
+        "noTernary": "off",
+        "noNestedTernary": "error"
       }
     },
     "domains": {
@@ -109,16 +114,30 @@
     },
     {
       "includes": [
+        "**/*.spec.ts",
         "**/*.test.ts",
         "**/*.test.tsx",
-        "**/*.spec.ts",
-        "**/tests/**",
-        "**/test/**"
+        "**/e2e/**",
+        "**/test/**",
+        "**/tests/**"
       ],
       "linter": {
         "rules": {
           "style": {
-            "noMagicNumbers": "off"
+            "noMagicNumbers": "off",
+            "noProcessEnv": "off",
+            "noExcessiveLinesPerFile": "off"
+          },
+          "correctness": {
+            "noNodejsModules": "off",
+            "noUnresolvedImports": "off"
+          },
+          "performance": {
+            "useTopLevelRegex": "off",
+            "noAwaitInLoops": "off"
+          },
+          "complexity": {
+            "noExcessiveLinesPerFunction": "off"
           }
         }
       }
