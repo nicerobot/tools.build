@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.16.0](https://github.com/nicerobot/tools.build/compare/v2.15.0...v2.16.0) (2026-08-10)
+
+
+### Features
+
+* **node-tooling:** bake the pinned Node CLIs into an image, as Go tools are ([d70af48](https://github.com/nicerobot/tools.build/commit/d70af48ca1cd55513f5a5a03eb514cf2ac3fdd4c))
+
 ## [2.15.0](https://github.com/nicerobot/tools.build/compare/v2.14.0...v2.15.0) (2026-08-09)
 
 
