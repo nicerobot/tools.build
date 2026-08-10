@@ -21,10 +21,14 @@ set -o pipefail
 # way.
 prune=()
 if [ -f .gitmodules ]; then
+  # .gitmodules is parsed with awk rather than `git config --file`, because this
+  # image has no git — the git-based version failed silently (its stderr went to
+  # /dev/null) and pruned nothing, so a consumer's gate reported 99 findings
+  # belonging to its submodule.
   while IFS= read -r submodule; do
     test -n "${submodule}" || continue
     prune+=(-not -path "./${submodule}/*")
-  done < <(git config --file .gitmodules --get-regexp '^submodule\..*\.path$' 2>/dev/null | awk '{print $2}')
+  done < <(awk -F'=' '/^[[:space:]]*path[[:space:]]*=/ {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}' .gitmodules)
 fi
 
 mapfile -t candidates < <(find . -type f \
