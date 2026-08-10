@@ -232,16 +232,36 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      # The floating tag is moved through the REST API rather than `git push`.
+      # GITHUB_TOKEN is a GitHub App token, and an App may not push a ref whose
+      # tree touches `.github/workflows/**` without a `workflows` permission
+      # that the workflow `permissions:` block cannot grant. Moving vMAJOR onto
+      # a release that changed any workflow file therefore failed the push with
+      # "refusing to allow a GitHub App to create or update workflow ... without
+      # `workflows` permission" — leaving the floating tag silently stale (it
+      # sat four releases behind before this was found, so every
+      # `uses: …@vMAJOR` consumer was pinned to old action code). The git-refs
+      # API carries no such restriction, and moving a tag was never a workflow
+      # edit in the first place.
       - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ inputs.tag || github.ref_name }}
+          REPO: ${{ github.repository }}
         run: |
           major="${TAG%%.*}"
-          # Force the refspec: on the `on: push: tags` path (a manual
-          # `git tag && git push`) the checkout already holds ${TAG}, and a
-          # non-forced fetch of a ref that exists is rejected with "would
-          # clobber existing tag" — which failed this job for every manually
-          # cut tag while the tag.yml path, checking out main, passed.
-          git fetch --depth 1 --force origin "+refs/tags/${TAG}:refs/tags/${TAG}"
-          git tag -f "${major}" "$(git rev-list -n1 "refs/tags/${TAG}")"
-          git push -f origin "refs/tags/${major}"
+          sha="$(gh api "repos/${REPO}/git/ref/tags/${TAG}" --jq '.object.sha')"
+          # A tag object (annotated) must be dereferenced to the commit it names;
+          # a lightweight tag already points at one.
+          type="$(gh api "repos/${REPO}/git/ref/tags/${TAG}" --jq '.object.type')"
+          if [[ ${type} == tag ]]; then
+            sha="$(gh api "repos/${REPO}/git/tags/${sha}" --jq '.object.sha')"
+          fi
+          # Update when the floating ref exists, create it the first time.
+          if gh api "repos/${REPO}/git/ref/tags/${major}" >/dev/null 2>&1; then
+            gh api --method PATCH "repos/${REPO}/git/refs/tags/${major}" \
+              --field sha="${sha}" --field force=true >/dev/null
+          else
+            gh api --method POST "repos/${REPO}/git/refs" \
+              --field ref="refs/tags/${major}" --field sha="${sha}" >/dev/null
+          fi
+          printf '::notice::moved %s to %s (%s)\n' "${major}" "${sha}" "${TAG}"
