@@ -29,10 +29,10 @@ github.com/client9/misspell/cmd/misspell@v0.3.4
 golang.org/x/tools/cmd/deadcode@v0.48.0
 github.com/mgechev/revive@v1.15.0
 github.com/mibk/dupl@v1.1.0
-go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260730225925-3e5f45c73e85
+go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260808063849-8649a03c818a
 
 # Lint runner & analyzers (gomatic)
-github.com/gomatic/stickler/cmd/stickler@v0.10.8
+github.com/gomatic/stickler/cmd/stickler@v0.10.10
 github.com/gomatic/yze/cmd/yze@v0.32.5
 
 # Complexity

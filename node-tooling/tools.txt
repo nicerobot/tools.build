@@ -19,20 +19,28 @@
 # A tool's own vulnerabilities are dealt with HERE, once, rather than in each of
 # the ~55 repositories that happen to invoke it.
 #
+# EVERY PIN IS THE LATEST RELEASE. Build tooling is kept current, and a version
+# that breaks a consumer is fixed in the consumer as it migrates — holding a tool
+# back to avoid that work leaves the whole fleet on an old toolchain to spare one
+# repository, and the advisory that prompted the hold is still there afterwards.
+# `make upgrade` rolls every entry to latest; `make verify` proves what is
+# installed matches.
+#
 # Blank lines and lines beginning with `#` are ignored.
 
 # Cloudflare Workers/Pages CLI — builds, dry-runs and deployments.
 #
-# Pinned at the version already in use across the fleet rather than the latest.
-# 4.118.0+ depends on miniflare 5.x-ALPHA, which is the only line carrying a
-# patched undici (7.29.0); every stable miniflare 4.x pins undici 7.28.0. Taking
-# a prerelease build tool to clear an advisory in a build tool is a trade to make
-# deliberately, in this file, when someone decides to — not silently.
-wrangler@4.114.0
+# 4.118.0+ depends on miniflare 5.x-alpha, which is also the only line carrying
+# a patched undici (7.29.0) — every stable miniflare 4.x pins the vulnerable
+# 7.28.0. Current wins: the prerelease is a build-time dependency of a
+# build-time tool, and it is the version that is not vulnerable.
+wrangler@4.120.0
 
 # Biome — lint + format for JS/TS, the tool ci/typescript runs.
 #
 # Moved here from a bare `npm install -g` in ci/typescript's Dockerfile so that
 # every Node tool version lives in one manifest, the way every Go tool version
-# lives in go-tooling/tools.txt.
-@biomejs/biome@1.9.4
+# lives in go-tooling/tools.txt. That pin had sat at 1.9.4 while 2.x shipped;
+# 2.x changes rule defaults, so repositories it newly flags get fixed as they
+# are migrated.
+@biomejs/biome@2.5.7
