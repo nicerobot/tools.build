@@ -7,7 +7,8 @@
         "preset": "all"
       },
       "complexity": {
-        "preset": "all"
+        "preset": "all",
+        "noExcessiveLinesPerFunction": "off"
       },
       "correctness": {
         "preset": "all",
@@ -61,7 +62,9 @@
           }
         },
         "noTernary": "off",
-        "noNestedTernary": "error"
+        "noNestedTernary": "error",
+        "useExportsLast": "off",
+        "noExcessiveLinesPerFile": "off"
       }
     },
     "domains": {
@@ -115,7 +118,30 @@
       "linter": {
         "rules": {
           "style": {
-            "noDefaultExport": "off"
+            "noDefaultExport": "off",
+            "noMagicNumbers": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/build.mjs",
+        "**/build.js",
+        "**/scripts/**",
+        "**/tools/**"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off",
+            "noUnresolvedImports": "off"
+          },
+          "suspicious": {
+            "noConsole": "off"
+          },
+          "performance": {
+            "noAwaitInLoops": "off"
           }
         }
       }
@@ -146,6 +172,17 @@
           },
           "complexity": {
             "noExcessiveLinesPerFunction": "off"
+          },
+          "suspicious": {
+            "useAwait": "off"
+          },
+          "security": {
+            "noSecrets": {
+              "level": "error",
+              "options": {
+                "entropyThreshold": 100
+              }
+            }
           }
         }
       }
