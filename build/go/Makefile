@@ -103,6 +103,18 @@ YQ = $(if $(GOBIN),$(GOBIN)/yq,yq)
 # Maximum source line length enforced by golines (it shortens longer lines).
 GOLINES_MAX ?= 120
 
+# golines shells out to a BASE FORMATTER once per file, and with none named it
+# uses goimports — which resolves every import against the module cache on each
+# spawn. The cost therefore scales with the dependency graph rather than with the
+# source: 186 files in modern-go-application took 37 seconds, one goimports
+# process per file, and the same files take under a second with gofmt.
+#
+# Naming gofmt loses nothing. Import grouping and ordering are enforced by
+# golangci-lint's gci/goimports formatters in `make lint` — see fmt-check's own
+# comment below — so golines re-resolving them is work the gate already does,
+# paid again by every repository on every `make fmt` and every `make check`.
+GOLINES_FLAGS ?= -m $(GOLINES_MAX) --base-formatter=gofmt
+
 # TOOLS_BUILD points at a local nicerobot/tools.build checkout so `make tools` /
 # `make doctor` can run its scripts. Defaults to the home-ecosystem clone path;
 # override on the command line elsewhere. CI never runs these (the image bakes the
@@ -753,16 +765,31 @@ docker-buildx: build-all ## Build + push a multi-arch image manifest (needs buil
 # form too; golines rewrote it to a quoted string, which silently turns the
 # edge-case fixture into a duplicate of the ordinary one. The gate was failing
 # on a file whose non-conformance is its entire purpose.
-FMT_FILES = $(shell find . -name '*.go' -not -path '*/_*' -not -path '*/.*' -not -path '*/testdata/*')
+# GENERATED files are excluded by their own marker, not by path. A generated
+# file says DO NOT EDIT in its header and the formatters were editing it anyway:
+# `make fmt` in modern-go-application rewrote gqlgen's and protoc's output, so a
+# regeneration and a format fought over the same lines forever and every `make
+# fmt` produced a diff nobody wrote. One marker covers every generated tree
+# without naming any of them.
+#
+# The pattern is Go's OWN definition of the marker — a whole line, at the head of
+# the file, ending in a period — and not merely the words appearing somewhere.
+# Matching the words anywhere excluded three hand-written files in go-yze, which
+# is the analyzer family that DETECTS the marker and therefore quotes it: a file
+# SHOWING the convention was read as a file MAKING the claim, and stopped being
+# formatted. `head -5` bounds the search to the header a generated file puts it
+# in, so a quotation further down cannot exempt anything.
+FMT_FILES = $(shell find . -name '*.go' -not -path '*/_*' -not -path '*/.*' -not -path '*/testdata/*' \
+	-exec sh -c 'head -5 "$$1" | grep -qE "^// Code generated .* DO NOT EDIT\.$$" || echo "$$1"' _ {} \;)
 
 .PHONY: fmt
 fmt: ## Format code (golines then gofumpt)
-	@[ -z "$(FMT_FILES)" ] || $(GOLINES) -m $(GOLINES_MAX) -w $(FMT_FILES)
+	@[ -z "$(FMT_FILES)" ] || $(GOLINES) $(GOLINES_FLAGS) -w $(FMT_FILES)
 	@[ -z "$(FMT_FILES)" ] || $(GOFUMPT) -l -w $(FMT_FILES)
 
 .PHONY: fmt-check
 fmt-check: ## Fail if any line exceeds GOLINES_MAX (gofumpt/imports are enforced by lint)
-	@out="$$([ -z "$(FMT_FILES)" ] || $(GOLINES) -m $(GOLINES_MAX) -l $(FMT_FILES))"; \
+	@out="$$([ -z "$(FMT_FILES)" ] || $(GOLINES) $(GOLINES_FLAGS) -l $(FMT_FILES))"; \
 	if [ -n "$${out}" ]; then echo "lines exceed $(GOLINES_MAX) cols (run 'make fmt'):"; echo "$${out}"; exit 1; fi
 
 .PHONY: generate
