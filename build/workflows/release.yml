@@ -1,5 +1,11 @@
 name: release
 on:
+  # A literal trigger, not the schedule marker the gate workflows carry:
+  # the marker also injects a cron, and a release must never fire on a timer.
+  # Without this, a release that failed against a superseded image can only be
+  # re-run against the commit it originally ran on, so its badge stays red until
+  # someone pushes a commit whose only purpose is to retrigger CI.
+  workflow_dispatch:
   push:
     branches: [main]
 concurrency:

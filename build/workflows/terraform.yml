@@ -1,5 +1,8 @@
 name: terraform
 on:
+  # Literal rather than the schedule marker: that marker also injects a
+  # cron, and an infrastructure plan should run on a change, not on a clock.
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
