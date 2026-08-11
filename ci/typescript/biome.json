@@ -110,6 +110,12 @@
       "includes": [
         "**/src/index.ts",
         "**/src/index.tsx",
+        "**/src/index.js",
+        "**/src/index.mjs",
+        "**/src/**/index.ts",
+        "**/src/**/index.tsx",
+        "**/src/**/index.js",
+        "**/src/**/index.mjs",
         "**/worker.ts",
         "**/*.config.ts",
         "**/*.config.js",
@@ -203,7 +209,8 @@
       "linter": {
         "rules": {
           "style": {
-            "noNamespace": "off"
+            "noNamespace": "off",
+            "noExcessiveClassesPerFile": "off"
           }
         }
       }
