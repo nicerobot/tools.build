@@ -95,7 +95,7 @@ soft:
   # it lands soft with per-repo baselines and gates again at zero.
   - yze/fuzzreq
   #
-  # stickler/clitiers is NEW (2026-08-12) and closes a hole rather than adding
+  # stickler/clicommands is NEW (2026-08-12) and closes a hole rather than adding
   # a rule: every OTHER layout check is scoped INSIDE the trees it judges —
   # yze/cliapp, yze/clidomain and yze/cliflags each return early unless the
   # package is already beneath internal/app/commands/ or internal/domain/, and
@@ -110,5 +110,5 @@ soft:
   # are silent for the same reason. Fixing one means moving a CLI's flags and
   # orchestration into the three tiers, which is a refactor per repo, so it
   # lands soft with committed baselines and gates again at zero.
-  - stickler/clitiers
+  - stickler/clicommands
 
