@@ -94,4 +94,21 @@ soft:
   # property — yze/fuzzassert, which is HARD, keeps those targets honest), so
   # it lands soft with per-repo baselines and gates again at zero.
   - yze/fuzzreq
+  #
+  # stickler/clitiers is NEW (2026-08-12) and closes a hole rather than adding
+  # a rule: every OTHER layout check is scoped INSIDE the trees it judges —
+  # yze/cliapp, yze/clidomain and yze/cliflags each return early unless the
+  # package is already beneath internal/app/commands/ or internal/domain/, and
+  # stickler/clilayout reports only CORRESPONDENCE between the two. So a CLI
+  # with NEITHER tree passed all of them vacuously. stickler itself sat in that
+  # hole until it was found.
+  #
+  # Measured before landing, over 242 modules: 12 report, one finding per
+  # program. The subject is a main that CONSTRUCTS a urfave command, never one
+  # that merely imports urfave — keying on the import reported 26 correct
+  # yupsh/yup-* single-verb wrappers, and the 36 yze-go-* singlechecker mains
+  # are silent for the same reason. Fixing one means moving a CLI's flags and
+  # orchestration into the three tiers, which is a refactor per repo, so it
+  # lands soft with committed baselines and gates again at zero.
+  - stickler/clitiers
 
