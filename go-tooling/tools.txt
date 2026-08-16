@@ -33,7 +33,7 @@ go.uber.org/nilaway/cmd/nilaway@v0.0.0-20260808063849-8649a03c818a
 
 # Lint runner & analyzers (gomatic)
 github.com/gomatic/stickler/cmd/stickler@v0.10.11
-github.com/gomatic/yze/cmd/yze@v0.33.0
+github.com/gomatic/yze/cmd/yze@v0.33.3
 
 # Complexity
 github.com/fzipp/gocyclo/cmd/gocyclo@v0.6.0
