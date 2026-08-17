@@ -19,6 +19,29 @@
 # from the per-repo softening above, which is a temporary cleanup ratchet that
 # must shrink toward zero. A probe's findings are still printed on every run, so
 # they reach a reviewer without gating a build.
+#
+# A probe belongs under `probe:` and NOT under `soft:`. The two are not the same
+# instrument: soft caps at a baseline, an absent entry caps at ZERO, and
+# exceeding the cap fails the build — so a rule listed as soft gates, whatever
+# the prose around it says. `probe:` never gates at any count and no baseline
+# applies. It is declared in this GLOBAL layer only, because whether a rule is
+# judgment-bound is a property of the analyzer rather than of a repository.
+probe:
+  # yze/enumdiscrim was called a PERMANENT PROBE in prose while listed under
+  # soft:, so it has been gating since it landed. That is not academic. It
+  # forced yze/cliversion to carry a deliberate soft-baseline entry, and on
+  # 2026-08-16 it made gomatic/yze-go-dupsentinel UNFIXABLE: `decl.Tok !=
+  # token.CONST` draws enumdiscrim, and the exhaustive switch it prescribes
+  # draws golangci's `exhaustive` demanding all ninety token.Token members.
+  # Neither spelling passes, and no third one exists.
+  #
+  # The rule itself is unchanged and still worth printing: `if x != EnumConst`
+  # over a >2-member group is the defect `exhaustive` cannot see, while a
+  # deliberate fast-path split of a many-way domain is legitimate. Only the
+  # author knows which reading is intended, and that is exactly what makes it a
+  # probe rather than a gate.
+  - yze/enumdiscrim
+
 soft:
   # yze/invariant reports doc comments asserting a property (atomically, never,
   # byte-identical, safe to copy) that no test names. Both halves are heuristic:
@@ -79,14 +102,6 @@ soft:
   # analyzer could not see may now report. Soft with committed baselines,
   # gating again at zero.
   - stickler/clilayout
-  #
-  # yze/enumdiscrim is a PERMANENT PROBE, like yze/invariant: `if x !=
-  # EnumConst` over a >2-member group is the defect exhaustive cannot see —
-  # but a deliberate fast-path split of a many-way domain is legitimate, and
-  # only the author knows which reading is intended. 31 findings fleet-wide at
-  # first contact; a human or agent adjudicates each, the ratchet keeps the
-  # count from growing.
-  - yze/enumdiscrim
   #
   # yze/fuzzreq is softened on rollout terms: the fleet had ZERO fuzz targets
   # at first contact while 16 exported parser surfaces consume bare untrusted
