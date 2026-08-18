@@ -1,129 +1,26 @@
 # Central stickler configuration for the gomatic Go toolchain — the GLOBAL layer
 # every repo's `make lint` (which runs stickler) inherits. A repo's own
-# .stickler.yaml layers OVER this (per-repo golangci overlays, runner selection,
-# soft-fail ratcheting).
+# .stickler.yaml layers OVER this (per-repo golangci overlays, runner selection).
 #
-# yze (the gomatic analyzer suite) is HARD everywhere: every finding fails the
-# build, exactly like golangci-lint. The rollout soft phase ended 2026-07-05; a
-# repo that genuinely cannot gate on a specific analyzer yet may soften it from
-# its own .stickler.yaml — narrow, reasoned, and shrinking toward zero — e.g.:
+# EVERY RULE GATES AT ZERO. There is no soft list, no probe list, and no
+# baseline — not here, and not in a repository's own .stickler.yaml. A finding
+# fails the build, whichever tool reported it.
 #
-#   soft: { add: [yze/ptrrecv] }       # soften ONE analyzer during its cleanup
+# THIS FILE USED TO SAY THE OPPOSITE, AND THAT IS WHY IT SAYS THIS. It carried
+# eleven rules under `soft:` and one under `probe:`, and its prose invited a
+# repository to "soften it from its own .stickler.yaml", describing rules that
+# "land soft with committed baselines and gate again at zero". An agent read
+# that as permission — because it was permission — and recorded a baseline for
+# code it had just written instead of fixing the finding. A ratchet meant for
+# pre-existing backlog is a landing pad for new work the moment it exists.
 #
-# golangci-lint is hard (gating) from day one; its per-repo deltas live under
-# `config: { golangci-lint: ... }` in the repo's .stickler.yaml.
+# So the instrument is gone rather than narrowed. A finding is fixed in the code,
+# or the analyzer that reported it is wrong and is fixed in the analyzer. Neither
+# of those is a number in a config file.
 #
-# The one standing exception is a PROBE — an analyzer whose precision is bounded
-# by judgment rather than by syntax, and which therefore must never block a push.
-# A probe is soft EVERYWHERE, permanently and by design; that is what separates it
-# from the per-repo softening above, which is a temporary cleanup ratchet that
-# must shrink toward zero. A probe's findings are still printed on every run, so
-# they reach a reviewer without gating a build.
-#
-# A probe belongs under `probe:` and NOT under `soft:`. The two are not the same
-# instrument: soft caps at a baseline, an absent entry caps at ZERO, and
-# exceeding the cap fails the build — so a rule listed as soft gates, whatever
-# the prose around it says. `probe:` never gates at any count and no baseline
-# applies. It is declared in this GLOBAL layer only, because whether a rule is
-# judgment-bound is a property of the analyzer rather than of a repository.
-probe:
-  # yze/enumdiscrim was called a PERMANENT PROBE in prose while listed under
-  # soft:, so it has been gating since it landed. That is not academic. It
-  # forced yze/cliversion to carry a deliberate soft-baseline entry, and on
-  # 2026-08-16 it made gomatic/yze-go-dupsentinel UNFIXABLE: `decl.Tok !=
-  # token.CONST` draws enumdiscrim, and the exhaustive switch it prescribes
-  # draws golangci's `exhaustive` demanding all ninety token.Token members.
-  # Neither spelling passes, and no third one exists.
-  #
-  # The rule itself is unchanged and still worth printing: `if x != EnumConst`
-  # over a >2-member group is the defect `exhaustive` cannot see, while a
-  # deliberate fast-path split of a many-way domain is legitimate. Only the
-  # author knows which reading is intended, and that is exactly what makes it a
-  # probe rather than a gate.
-  - yze/enumdiscrim
-
-soft:
-  # yze/invariant reports doc comments asserting a property (atomically, never,
-  # byte-identical, safe to copy) that no test names. Both halves are heuristic:
-  # the keyword set matches prose that describes rather than promises, and "named
-  # by a test" only approximates "verified by a test". It surfaces real unverified
-  # claims AND claims that are verified under a differently-named test, so a human
-  # or agent adjudicates each one. Gating on it would teach everyone to silence it.
-  - yze/invariant
-  # yze/filesize reports files over a line limit. It is soft because the fix is
-  # a real refactor — splitting a file along a seam that has to be chosen, not a
-  # mechanical edit — so gating on it would block unrelated work behind a design
-  # decision. The soft-baseline ratchet is what keeps it from being ignored: the
-  # count may fall, never grow.
-  - yze/filesize
-  #
-  # ---- ROLLOUT SOFTENING — these three are HARD rules, temporarily softened ----
-  #
-  # Unlike the two probes above, these gate by right and must return to hard the
-  # moment the fleet reaches zero. They are listed here only because they were
-  # STRUCTURALLY INERT until 2026-07-28: the suite driver loaded packages without
-  # test files, so every analyzer that inspects _test.go could never report
-  # anything. Fixing that activated them for the first time and would have turned
-  # 68 previously-green repositories red in a single toolchain bump.
-  #
-  # Landing them soft with a committed per-rule baseline means the findings are
-  # visible on every run and cannot grow, while the backlog is worked down
-  # deliberately. Each is promoted back to hard — by deleting its line here —
-  # once its baseline reaches zero fleet-wide. Do not let these become permanent.
-  - yze/errtest
-  - yze/errtested
-  - yze/testfile
-  #
-  # exhaustive (golangci-lint) is softened on the same rollout terms: 86 findings
-  # across 21 repositories, each an enum discrimination that silently ignores a
-  # value. Every one is a real defect waiting for someone to add an enum member,
-  # but fixing one means deciding what the missing branch should DO — a design
-  # question per site, not an edit. It gates again at zero.
-  - exhaustive
-  #
-  # yze/clidomain (formerly yze/cliopinion) is softened on the same terms: 99
-  # findings across 22 repositories at the old depth-1 scope, most of them a
-  # domain Run whose variadic is a package-local `type argument = string`
-  # rather than the shared domain.Argument — and the analyzer now reaches
-  # nested verbs, which may surface more. Converting one means touching a
-  # package's public entry point, so it stays soft and gates again at zero.
-  - yze/clidomain
-  #
-  # yze/cliflags is NEW (2026-08-01, the kilroy correction): nothing previously
-  # read a flag literal at all, so its rules — env Sources on every flag, Value
-  # defaults, kebab-case names, no Required, well-known externals unprefixed —
-  # light up findings fleet-wide on first contact. It lands soft with per-repo
-  # committed baselines, exactly as errtest/errtested/testfile did, and gates
-  # again at zero.
-  - yze/cliflags
-  #
-  # stickler/clilayout is NEW on the same terms: it replaces the depth-1
-  # yze/layout with whole-repo correspondence at every depth, so trees the old
-  # analyzer could not see may now report. Soft with committed baselines,
-  # gating again at zero.
-  - stickler/clilayout
-  #
-  # yze/fuzzreq is softened on rollout terms: the fleet had ZERO fuzz targets
-  # at first contact while 16 exported parser surfaces consume bare untrusted
-  # input. Each finding is real work (write a fuzz target that asserts a
-  # property — yze/fuzzassert, which is HARD, keeps those targets honest), so
-  # it lands soft with per-repo baselines and gates again at zero.
-  - yze/fuzzreq
-  #
-  # stickler/clicommands is NEW (2026-08-12) and closes a hole rather than adding
-  # a rule: every OTHER layout check is scoped INSIDE the trees it judges —
-  # yze/cliapp, yze/clidomain and yze/cliflags each return early unless the
-  # package is already beneath internal/app/commands/ or internal/domain/, and
-  # stickler/clilayout reports only CORRESPONDENCE between the two. So a CLI
-  # with NEITHER tree passed all of them vacuously. stickler itself sat in that
-  # hole until it was found.
-  #
-  # Measured before landing, over 242 modules: 12 report, one finding per
-  # program. The subject is a main that CONSTRUCTS a urfave command, never one
-  # that merely imports urfave — keying on the import reported 26 correct
-  # yupsh/yup-* single-verb wrappers, and the 36 yze-go-* singlechecker mains
-  # are silent for the same reason. Fixing one means moving a CLI's flags and
-  # orchestration into the three tiers, which is a refactor per repo, so it
-  # lands soft with committed baselines and gates again at zero.
-  - stickler/clicommands
-
+# AN EXEMPTION IS NOT A BASELINE, AND IT IS NOT AN AGENT'S TO WRITE. Authorized
+# exemptions — scoped to their reason, counted, and refusable — are designed
+# elsewhere and are not invented here: the exemption scopes and the signed
+# `.stickler.repo.lock` are specified in the yze statement-disablement work.
+# Until that is built and an exemption carries the owner's signature, nothing
+# excuses a finding. That is the intended state, not a gap.
